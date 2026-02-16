@@ -1,6 +1,7 @@
 import { useReducer, useEffect, useRef, useCallback } from "react";
 
 const MAX_LINES = 2000;
+const MAX_STREAM_LINES = 200;
 
 const initialState = {
   gameLines: [],
@@ -11,7 +12,19 @@ const initialState = {
   spell: null,
   indicators: {},
   connected: false,
+  exp: {},
+  activeSpells: "",
+  streams: {},
+  roundtime: null,
+  casttime: null,
+  charName: null,
+  mono: false,
 };
+
+function appendLines(existing, newLine, max) {
+  const updated = [...existing, newLine];
+  return updated.length > max ? updated.slice(-max) : updated;
+}
 
 function reducer(state, action) {
   switch (action.type) {
@@ -28,6 +41,11 @@ function reducer(state, action) {
         hands: action.state.hands || { left: "Empty", right: "Empty" },
         spell: action.state.spell,
         indicators: action.state.indicators || {},
+        charName: action.state.char_name || null,
+        roundtime: action.state.roundtime || null,
+        casttime: action.state.casttime || null,
+        exp: action.state.exp || {},
+        activeSpells: action.state.active_spells || "",
       };
     case "text": {
       const line = {
@@ -37,22 +55,40 @@ function reducer(state, action) {
         mono: action.mono || false,
         prompt: action.prompt || false,
       };
-      const newLines = [...state.gameLines, line];
       return {
         ...state,
-        gameLines: newLines.length > MAX_LINES ? newLines.slice(-MAX_LINES) : newLines,
+        gameLines: appendLines(state.gameLines, line, MAX_LINES),
       };
     }
     case "stream": {
-      const line = {
-        text: action.text,
-        style: "stream",
-        streamId: action.id,
-      };
-      const newLines = [...state.gameLines, line];
+      const streamLine = { text: action.text, ts: Date.now() };
+      const streamId = action.id;
+
+      // Update per-stream buffer
+      const streamLines = state.streams[streamId] || [];
+      const newStreamLines = appendLines(streamLines, streamLine, MAX_STREAM_LINES);
+      const newStreams = { ...state.streams, [streamId]: newStreamLines };
+
+      // Also add thoughts/deaths/arrivals to main game text
+      const showInMain = ["thoughts", "death", "atmospherics", "arrivals"].includes(streamId);
+      let newGameLines = state.gameLines;
+      if (showInMain) {
+        const gameLine = {
+          text: action.text,
+          style: "stream",
+          streamId: streamId,
+        };
+        newGameLines = appendLines(state.gameLines, gameLine, MAX_LINES);
+      }
+
+      // Handle active spells stream
+      const newActiveSpells = streamId === "percWindow" ? action.text : state.activeSpells;
+
       return {
         ...state,
-        gameLines: newLines.length > MAX_LINES ? newLines.slice(-MAX_LINES) : newLines,
+        streams: newStreams,
+        gameLines: newGameLines,
+        activeSpells: newActiveSpells,
       };
     }
     case "vitals":
@@ -78,9 +114,40 @@ function reducer(state, action) {
       };
     case "prompt":
       return { ...state, promptTime: action.time };
+    case "exp":
+      return {
+        ...state,
+        exp: {
+          ...state.exp,
+          [action.skill]: parseExp(action.skill, action.text),
+        },
+      };
+    case "roundtime":
+      return { ...state, roundtime: action.value };
+    case "casttime":
+      return { ...state, casttime: action.value };
+    case "char_name":
+      return { ...state, charName: action.name };
+    case "output_mode":
+      return { ...state, mono: action.mono };
+    case "batch":
+      return action.events.reduce(reducer, state);
     default:
       return state;
   }
+}
+
+function parseExp(skill, text) {
+  const match = text.match(/(\d+)\s+(\d+)%\s*(.*)$/);
+  if (match) {
+    return {
+      text,
+      rank: parseInt(match[1], 10),
+      percent: parseInt(match[2], 10),
+      state: match[3].trim() || null,
+    };
+  }
+  return { text, rank: null, percent: null, state: null };
 }
 
 export function useGameSocket() {
@@ -101,7 +168,11 @@ export function useGameSocket() {
     ws.onmessage = (event) => {
       try {
         const data = JSON.parse(event.data);
-        dispatch(data);
+        if (Array.isArray(data)) {
+          dispatch({ type: "batch", events: data });
+        } else {
+          dispatch(data);
+        }
       } catch (e) {
         console.error("[ws] Parse error:", e);
       }
@@ -136,6 +207,12 @@ export function useGameSocket() {
     spell: state.spell,
     indicators: state.indicators,
     connected: state.connected,
+    exp: state.exp,
+    activeSpells: state.activeSpells,
+    streams: state.streams,
+    roundtime: state.roundtime,
+    casttime: state.casttime,
+    charName: state.charName,
     send,
   };
 }

@@ -1,0 +1,42 @@
+import React, { useState } from "react";
+import RoomPanel from "./RoomPanel";
+import ExpTracker from "./ExpTracker";
+import StreamPanel from "./StreamPanel";
+import Compass from "./Compass";
+
+function CollapsiblePanel({ title, defaultOpen = true, children }) {
+  const [open, setOpen] = useState(defaultOpen);
+  return (
+    <div className={`sidebar-panel ${open ? "open" : "collapsed"}`}>
+      <div className="sidebar-panel-header" onClick={() => setOpen(!open)}>
+        <span className="panel-toggle">{open ? "\u25BC" : "\u25B6"}</span>
+        <span className="panel-title">{title}</span>
+      </div>
+      {open && <div className="sidebar-panel-body">{children}</div>}
+    </div>
+  );
+}
+
+export default function Sidebar({ room, exp, streams, activeSpells, compass, onMove }) {
+  return (
+    <div className="sidebar">
+      <CollapsiblePanel title="Room">
+        <RoomPanel room={room} />
+      </CollapsiblePanel>
+      <CollapsiblePanel title="Compass">
+        <Compass compass={compass} onMove={onMove} />
+      </CollapsiblePanel>
+      <CollapsiblePanel title="Experience">
+        <ExpTracker exp={exp} />
+      </CollapsiblePanel>
+      <CollapsiblePanel title="Thoughts" defaultOpen={false}>
+        <StreamPanel title="Thoughts" lines={streams.thoughts || []} />
+      </CollapsiblePanel>
+      <CollapsiblePanel title="Active Spells" defaultOpen={false}>
+        <div className="active-spells-text">
+          {activeSpells || "No active spells"}
+        </div>
+      </CollapsiblePanel>
+    </div>
+  );
+}

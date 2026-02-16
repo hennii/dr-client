@@ -19,21 +19,30 @@ class XmlParser
     # Preprocess: fix unescaped ampersands
     line = line.gsub(/&(?!#?[a-z0-9]+;)/i, "&amp;")
 
-    # Convert self-closing pushStream/popStream
+    # Convert self-closing pushStream to opening tag;
+    # convert popStream to a recognizable element (not a closing tag,
+    # since Nokogiri discards orphan closing tags across line boundaries)
     line = line.gsub(/<pushStream([^>]*)\/>/, '<pushStream\1>')
-    line = line.gsub(/<popStream[^>]*\/>/, '</pushStream>')
+    line = line.gsub(/<popStream[^>]*\/>/, '<popstream/>')
+
+    # Rename <style> to <gamestyle> to prevent Nokogiri HTML mode from
+    # treating it as a CSS <style> element (which swallows sibling text)
+    line = line.gsub(/<style\b/, "<gamestyle")
+    line = line.gsub(/<\/style>/, "</gamestyle>")
 
     parse_line(line)
+
+    # Each feed() call is one \r\n-delimited line from the game server.
+    # Flush any remaining text as a complete line.
+    flush_text
   end
 
   private
 
   def parse_line(line)
-    # Wrap in root element for fragment parsing
     begin
       doc = Nokogiri::HTML.fragment("<root>#{line}</root>")
     rescue => e
-      # Fallback: wrap in CDATA
       escaped = "<root><![CDATA[#{line}]]></root>"
       begin
         doc = Nokogiri::HTML.fragment(escaped)
@@ -63,21 +72,24 @@ class XmlParser
         @push_buffer = []
       end
       process_nodes(node.children)
-      # If this tag had children and closes, pop stream
-      if node.children.any?
-        flush_push_stream
-      end
+      flush_push_stream if node.children.any?
+
+    when "popstream"
+      flush_push_stream
 
     when "prompt"
       flush_text(prompt: true)
       time = node["time"]&.to_i
       emit(type: "prompt", time: time)
 
-    when "style"
+    when "gamestyle"
       id = node["id"]
-      case id
-      when "roomName"
+      # Flush any text accumulated under the previous style
+      flush_text unless @text_buffer.empty?
+      if id == "roomName"
         @current_style = "room_name"
+      elsif id.nil? || id.empty?
+        @current_style = nil
       else
         @current_style = nil
       end
@@ -101,7 +113,6 @@ class XmlParser
       process_vitals(node) if node["id"] == "minivitals"
 
     when "progressbar"
-      # Handled inside dialogdata
       return
 
     when "compass"
@@ -215,7 +226,6 @@ class XmlParser
       field = $1.downcase
       emit(type: "room", field: field, value: node.inner_html.strip)
     else
-      # Other components — emit generically
       emit(type: "component", id: id, value: node.text.strip)
     end
   end

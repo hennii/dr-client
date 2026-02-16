@@ -28,6 +28,9 @@ class GameApp < Sinatra::Base
   @@ws_mutex = Mutex.new
   @@game_connection = nil
   @@game_state = GameState.new
+  @@event_batch = []
+  @@batch_mutex = Mutex.new
+  @@flush_scheduled = false
 
   get "/" do
     send_file File.join(settings.public_folder, "index.html")
@@ -62,7 +65,26 @@ class GameApp < Sinatra::Base
   end
 
   def self.broadcast(event_hash)
-    json = event_hash.to_json
+    @@batch_mutex.synchronize do
+      @@event_batch << event_hash
+      unless @@flush_scheduled
+        @@flush_scheduled = true
+        # Flush batch on next EventMachine tick (sub-millisecond grouping)
+        EventMachine.next_tick { flush_batch }
+      end
+    end
+  end
+
+  def self.flush_batch
+    batch = nil
+    @@batch_mutex.synchronize do
+      batch = @@event_batch
+      @@event_batch = []
+      @@flush_scheduled = false
+    end
+    return if batch.empty?
+
+    json = batch.to_json
     @@ws_mutex.synchronize do
       @@ws_clients.each do |ws|
         ws.send(json) rescue nil

@@ -13,6 +13,8 @@ class GameState
       char_name: nil,
       roundtime: nil,
       casttime: nil,
+      exp: {},
+      active_spells: "",
     }
   end
 
@@ -37,6 +39,15 @@ class GameState
         @state[:roundtime] = event[:value]
       when "casttime"
         @state[:casttime] = event[:value]
+      when "exp"
+        skill = event[:skill]
+        text = event[:text] || ""
+        parsed = parse_exp(skill, text)
+        @state[:exp][skill] = parsed
+      when "stream"
+        if event[:id] == "percWindow"
+          @state[:active_spells] = event[:text] || ""
+        end
       end
     end
   end
@@ -47,5 +58,26 @@ class GameState
 
   def to_json
     snapshot.to_json
+  end
+
+  private
+
+  def parse_exp(skill, text)
+    # Exp text looks like: "       Evasion:    342 88% attentive    " or similar
+    rank = nil
+    percent = nil
+    state = nil
+
+    # Extract rank (first number), percent (number followed by %), and learning state (last word)
+    if text =~ /(\d+)\s+(\d+)%\s+(\S+.*)$/
+      rank = $1.to_i
+      percent = $2.to_i
+      state = $3.strip
+    elsif text =~ /(\d+)\s+(\d+)%/
+      rank = $1.to_i
+      percent = $2.to_i
+    end
+
+    { text: text, rank: rank, percent: percent, state: state }
   end
 end
