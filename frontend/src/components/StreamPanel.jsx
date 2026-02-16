@@ -5,23 +5,35 @@ const LNET_RE = /^(\[[^\]]+\]-[^:]+:[^:]+:)\s*(.*)/;
 // ESP: [Channel][Player] "message"
 const ESP_RE = /^(\[[^\]]+\]\[[^\]]+\])\s*(.*)/;
 
-function ThoughtLine({ text }) {
+function formatTime(ts) {
+  if (!ts) return null;
+  const d = new Date(ts);
+  let h = d.getHours();
+  const ampm = h >= 12 ? "pm" : "am";
+  h = h % 12 || 12;
+  const m = String(d.getMinutes()).padStart(2, "0");
+  return `${h}:${m} ${ampm}`;
+}
+
+function ThoughtLine({ text, ts }) {
   let match;
+  const time = formatTime(ts);
+  const timestamp = time ? <span className="thought-timestamp"> [{time}]</span> : null;
   if ((match = text.match(LNET_RE))) {
     return (
       <>
-        <span className="thought-lnet-prefix">{match[1]}</span> {match[2]}
+        <span className="thought-lnet-prefix">{match[1]}</span> {match[2]}{timestamp}
       </>
     );
   }
   if ((match = text.match(ESP_RE))) {
     return (
       <>
-        <span className="thought-esp-prefix">{match[1]}</span> {match[2]}
+        <span className="thought-esp-prefix">{match[1]}</span> {match[2]}{timestamp}
       </>
     );
   }
-  return text;
+  return <>{text}{timestamp}</>;
 }
 
 export default function StreamPanel({ title, lines, colorizeThoughts }) {
@@ -60,7 +72,7 @@ export default function StreamPanel({ title, lines, colorizeThoughts }) {
         ) : (
           lines.map((line, i) => (
             <div key={i} className="stream-line">
-              {colorizeThoughts ? <ThoughtLine text={line.text} /> : line.text}
+              {colorizeThoughts ? <ThoughtLine text={line.text} ts={line.ts} /> : line.text}
             </div>
           ))
         )}

@@ -69,11 +69,15 @@ class XmlParser
     when "pushstream"
       id = node["id"]
       if @in_push_stream.nil?
+        flush_text unless @text_buffer.empty?
         @in_push_stream = id
         @push_buffer = []
       end
       process_nodes(node.children)
-      flush_push_stream if node.children.any?
+
+    when "streamwindow", "clearstream"
+      # Metadata/clear tags for stream windows; content comes via pushStream
+      return
 
     when "popstream"
       flush_push_stream
@@ -94,6 +98,7 @@ class XmlParser
       else
         @current_style = nil
       end
+      process_nodes(node.children)
 
     when "preset"
       id = node["id"]
@@ -122,12 +127,15 @@ class XmlParser
 
     when "roundtime"
       emit(type: "roundtime", value: node["value"]&.to_i)
+      process_nodes(node.children)
 
     when "casttime"
       emit(type: "casttime", value: node["value"]&.to_i)
+      process_nodes(node.children)
 
     when "indicator"
       emit(type: "indicator", id: node["id"], visible: node["visible"] == "y")
+      process_nodes(node.children)
 
     when "left"
       @left_hand = node.text.strip
@@ -144,10 +152,14 @@ class XmlParser
       handle_component(node)
 
     when "pushbold"
+      flush_text unless @text_buffer.empty?
       @bold = true
+      process_nodes(node.children)
 
     when "popbold"
+      flush_text unless @text_buffer.empty?
       @bold = false
+      process_nodes(node.children)
 
     when "b"
       old_bold = @bold
@@ -162,10 +174,12 @@ class XmlParser
     when "output"
       @mono = (node["class"] == "mono")
       emit(type: "output_mode", mono: @mono)
+      process_nodes(node.children)
 
     when "app"
       name = node["char"]
       emit(type: "char_name", name: name) if name
+      process_nodes(node.children)
 
     when "root"
       process_nodes(node.children)

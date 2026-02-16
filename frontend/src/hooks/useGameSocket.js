@@ -27,10 +27,34 @@ function appendLines(existing, newLine, max) {
   return updated.length > max ? updated.slice(-max) : updated;
 }
 
+const DAMAGE_RE = /The \S+ lands .+?\(\d+\/\d+\).+?\./;
+
+function splitCombatDamage(text) {
+  const match = text.match(DAMAGE_RE);
+  if (!match) return [{ text }];
+  const idx = match.index;
+  const segments = [];
+  if (idx > 0) segments.push({ text: text.slice(0, idx) });
+  segments.push({ text: match[0], style: "combat_damage" });
+  const after = text.slice(idx + match[0].length);
+  if (after) segments.push({ text: after });
+  return segments;
+}
+
 function reducer(state, action) {
   switch (action.type) {
     case "connected":
-      return { ...state, connected: true };
+      return {
+        ...state,
+        connected: true,
+        gameLines: state.gameLines.length > 0
+          ? appendLines(
+              state.gameLines,
+              { segments: [{ text: "*** Reconnected ***", style: "reconnect", bold: true }] },
+              MAX_LINES
+            )
+          : state.gameLines,
+      };
     case "disconnected":
       return {
         ...state,
@@ -63,9 +87,14 @@ function reducer(state, action) {
         bold: action.bold || false,
         mono: action.mono || false,
       };
+      // Update room title when we see a room_name styled text
+      const newRoom = action.style === "room_name"
+        ? { ...state.room, title: (action.text || "").trim() }
+        : state.room;
       if (action.prompt) {
         return {
           ...state,
+          room: newRoom,
           gameLines: appendLines(
             state.gameLines,
             { segments: [seg], prompt: true },
@@ -81,10 +110,11 @@ function reducer(state, action) {
           ...prev,
           segments: [...prev.segments, seg],
         };
-        return { ...state, gameLines: merged };
+        return { ...state, room: newRoom, gameLines: merged };
       }
       return {
         ...state,
+        room: newRoom,
         gameLines: appendLines(
           state.gameLines,
           { segments: [seg], prompt: false },
@@ -101,15 +131,31 @@ function reducer(state, action) {
       const newStreamLines = appendLines(streamLines, streamLine, MAX_STREAM_LINES);
       const newStreams = { ...state.streams, [streamId]: newStreamLines };
 
-      // Also add thoughts/deaths/arrivals to main game text
-      const showInMain = ["thoughts", "death", "atmospherics", "arrivals"].includes(streamId);
+      // Also add combat/thoughts/deaths/arrivals to main game text
+      const showInMain = ["combat", "thoughts", "death", "atmospherics", "arrivals"].includes(streamId);
       let newGameLines = state.gameLines;
       if (showInMain) {
-        const gameLine = {
-          segments: [{ text: action.text, style: "stream" }],
-          streamId: streamId,
-        };
-        newGameLines = appendLines(state.gameLines, gameLine, MAX_LINES);
+        if (streamId === "combat") {
+          // Split combat text so bracketed status/roundtime appear on their own lines
+          const parts = action.text.split(/\s*(\[[^\]]*\])\s*/g).filter(Boolean);
+          for (const part of parts) {
+            let segments;
+            if (part.startsWith("[")) {
+              segments = [{ text: part, style: "combat_status" }];
+            } else {
+              // Highlight the damage sentence (e.g. "The sword lands a heavy hit (5/23)...")
+              segments = splitCombatDamage(part);
+            }
+            const gameLine = { segments, streamId };
+            newGameLines = appendLines(newGameLines, gameLine, MAX_LINES);
+          }
+        } else {
+          const gameLine = {
+            segments: [{ text: action.text, style: "stream" }],
+            streamId: streamId,
+          };
+          newGameLines = appendLines(newGameLines, gameLine, MAX_LINES);
+        }
       }
 
       // Handle active spells stream
@@ -224,14 +270,43 @@ export function useGameSocket() {
   const intentionalClose = useRef(false);
 
   useEffect(() => {
+    intentionalClose.current = false;
+    let retryDelay = 2000;
+    const MAX_RETRY_DELAY = 10000;
+
     function connect() {
       const protocol = window.location.protocol === "https:" ? "wss:" : "ws:";
       const wsUrl = `${protocol}//${window.location.host}/ws`;
-      const ws = new WebSocket(wsUrl);
+      let ws;
+      try {
+        ws = new WebSocket(wsUrl);
+      } catch (e) {
+        console.error("[ws] Failed to create WebSocket:", e);
+        scheduleReconnect();
+        return;
+      }
       wsRef.current = ws;
+      let settled = false;
+
+      // If the connection doesn't open within 5s, give up and retry.
+      // Vite's proxy can hang when the backend is down.
+      const connectTimeout = setTimeout(() => {
+        if (!settled) {
+          console.log("[ws] Connection timeout");
+          settled = true;
+          ws.onopen = null;
+          ws.onclose = null;
+          ws.onerror = null;
+          ws.close();
+          scheduleReconnect();
+        }
+      }, 5000);
 
       ws.onopen = () => {
+        settled = true;
+        clearTimeout(connectTimeout);
         console.log("[ws] Connected");
+        retryDelay = 2000;
         dispatch({ type: "connected" });
       };
 
@@ -249,19 +324,25 @@ export function useGameSocket() {
       };
 
       ws.onclose = (event) => {
+        if (settled && event.code === 1000) return; // clean close from timeout
+        clearTimeout(connectTimeout);
+        if (!settled) settled = true;
         console.log(`[ws] Disconnected (code=${event.code})`);
         dispatch({ type: "disconnected" });
-        if (!intentionalClose.current) {
-          reconnectTimer.current = setTimeout(() => {
-            console.log("[ws] Reconnecting...");
-            connect();
-          }, 2000);
-        }
+        scheduleReconnect();
       };
 
-      ws.onerror = (err) => {
-        console.error("[ws] Error:", err);
-      };
+      ws.onerror = () => {};
+    }
+
+    function scheduleReconnect() {
+      if (intentionalClose.current) return;
+      clearTimeout(reconnectTimer.current);
+      console.log(`[ws] Reconnecting in ${retryDelay / 1000}s...`);
+      reconnectTimer.current = setTimeout(() => {
+        connect();
+      }, retryDelay);
+      retryDelay = Math.min(retryDelay * 1.5, MAX_RETRY_DELAY);
     }
 
     connect();

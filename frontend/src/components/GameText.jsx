@@ -1,21 +1,27 @@
-import React, { useRef, useEffect, useState } from "react";
+import React, { useRef, useLayoutEffect, useCallback } from "react";
 
 export default function GameText({ lines, onClick }) {
   const containerRef = useRef(null);
-  const [autoScroll, setAutoScroll] = useState(true);
+  const autoScroll = useRef(true);
+  const programmaticScroll = useRef(false);
 
-  useEffect(() => {
-    if (autoScroll && containerRef.current) {
+  // Scroll before browser paints so the user never sees unscrolled content
+  useLayoutEffect(() => {
+    if (autoScroll.current && containerRef.current) {
+      programmaticScroll.current = true;
       containerRef.current.scrollTop = containerRef.current.scrollHeight;
     }
-  }, [lines, autoScroll]);
+  }, [lines]);
 
-  function handleScroll() {
+  const handleScroll = useCallback(() => {
+    if (programmaticScroll.current) {
+      programmaticScroll.current = false;
+      return;
+    }
     const el = containerRef.current;
     if (!el) return;
-    const atBottom = el.scrollHeight - el.scrollTop - el.clientHeight < 50;
-    setAutoScroll(atBottom);
-  }
+    autoScroll.current = el.scrollHeight - el.scrollTop - el.clientHeight < 50;
+  }, []);
 
   return (
     <div className="game-text" ref={containerRef} onScroll={handleScroll} onClick={onClick}>

@@ -56,21 +56,21 @@ dr-client/
 ## Key Protocols
 
 ### eAuth
-SSL connection to eaccess.play.net. Challenge-response with XOR password encryption. Returns session key + game host/port. Reference: `~/frostbite-qt6/gui/eauthservice.cpp`
+SSL connection to eaccess.play.net. Challenge-response with XOR password encryption. Returns session key + game host/port. Reference: `~/development/frostbite-qt6/gui/eauthservice.cpp`
 
 ### Game Connection
-TCP to Lich's local proxy port. Commands sent as `<c>COMMAND\r\n`. Server sends continuous XML stream (not well-formed). Reference: `~/frostbite-qt6/gui/tcpclient.cpp`
+TCP to Lich's local proxy port. Commands sent as `<c>COMMAND\r\n`. Server sends continuous XML stream (not well-formed). Reference: `~/development/frostbite-qt6/gui/tcpclient.cpp`
 
 ### XML Stream
-Malformed continuous XML. Key tags: `prompt`, `roundTime`, `compass`, `indicator`, `component` (exp/room), `dialogData` (vitals), `pushStream`/`popStream` (stream windows), `preset`/`style` (styled text). Reference: `~/frostbite-qt6/gui/xml/xmlparserthread.cpp`
+Malformed continuous XML. Key tags: `prompt`, `roundTime`, `compass`, `indicator`, `component` (exp/room), `dialogData` (vitals), `pushStream`/`popStream` (stream windows), `preset`/`style` (styled text). Reference: `~/development/frostbite-qt6/gui/xml/xmlparserthread.cpp`
 
 ### ScriptApiServer
-TCP server, line-based protocol. Request: `COMMAND NAME?arg1&arg2\n`, Response: `result\0`. Used by kor-scripts for custom windows (`WINDOW_ADD`, `WINDOW_WRITE`, etc.). Reference: `~/frostbite-qt6/gui/scriptapiserver.cpp`, `~/dragonrealms/kor-scripts/kor_frostbite_client.rb`
+TCP server, line-based protocol. Request: `COMMAND NAME?arg1&arg2\n`, Response: `result\0`. Used by kor-scripts for custom windows (`WINDOW_ADD`, `WINDOW_WRITE`, etc.). Reference: `~/development/frostbite-qt6/gui/scriptapiserver.cpp`, `~/dragonrealms/kor-scripts/kor_frostbite_client.rb`
 
 ## Related Projects
 
 - **kor-scripts** (`~/dragonrealms/kor-scripts`) — Lich5 Ruby scripts for DR automation. 8 scripts use `KorFrostbiteClient` module which connects to the ScriptApiServer.
-- **Frostbite** (`~/frostbite-qt6`) — The Qt6 client being replaced. Primary reference for protocol implementation.
+- **Frostbite** (`~/development/frostbite-qt6`) — The Qt6 client being replaced. Primary reference for protocol implementation.
 - **Lich5** (`~/dragonrealms/lich`) — Ruby scripting engine that proxies between client and game server.
 
 ## Development
