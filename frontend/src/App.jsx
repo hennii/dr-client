@@ -8,7 +8,7 @@ import Sidebar from "./components/Sidebar";
 export default function App() {
   const {
     gameLines, vitals, room, compass, hands, spell, indicators,
-    connected, exp, activeSpells, streams, roundtime, casttime, send,
+    connected, exp, activeSpells, streams, scriptWindows, roundtime, casttime, send,
   } = useGameSocket();
 
   return (
@@ -27,6 +27,7 @@ export default function App() {
         streams={streams}
         activeSpells={activeSpells}
         compass={compass}
+        scriptWindows={scriptWindows}
         onMove={send}
       />
     </div>

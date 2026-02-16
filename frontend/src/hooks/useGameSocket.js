@@ -15,6 +15,7 @@ const initialState = {
   exp: {},
   activeSpells: "",
   streams: {},
+  scriptWindows: {},
   roundtime: null,
   casttime: null,
   charName: null,
@@ -130,6 +131,33 @@ function reducer(state, action) {
       return { ...state, charName: action.name };
     case "output_mode":
       return { ...state, mono: action.mono };
+    case "script_window": {
+      const sw = { ...state.scriptWindows };
+      switch (action.action) {
+        case "add":
+          sw[action.name] = { title: action.title || action.name, lines: [] };
+          break;
+        case "write":
+          if (sw[action.name]) {
+            sw[action.name] = {
+              ...sw[action.name],
+              lines: [...sw[action.name].lines, action.text],
+            };
+          }
+          break;
+        case "clear":
+          if (sw[action.name]) {
+            sw[action.name] = { ...sw[action.name], lines: [] };
+          }
+          break;
+        case "remove":
+          delete sw[action.name];
+          break;
+        default:
+          break;
+      }
+      return { ...state, scriptWindows: sw };
+    }
     case "batch":
       return action.events.reduce(reducer, state);
     default:
@@ -210,6 +238,7 @@ export function useGameSocket() {
     exp: state.exp,
     activeSpells: state.activeSpells,
     streams: state.streams,
+    scriptWindows: state.scriptWindows,
     roundtime: state.roundtime,
     casttime: state.casttime,
     charName: state.charName,

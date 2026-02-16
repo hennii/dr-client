@@ -17,7 +17,35 @@ function CollapsiblePanel({ title, defaultOpen = true, children }) {
   );
 }
 
-export default function Sidebar({ room, exp, streams, activeSpells, compass, onMove }) {
+function ScriptWindowPanel({ lines }) {
+  const containerRef = React.useRef(null);
+
+  React.useEffect(() => {
+    if (containerRef.current) {
+      containerRef.current.scrollTop = containerRef.current.scrollHeight;
+    }
+  }, [lines]);
+
+  return (
+    <div className="script-window-panel">
+      <div className="script-window-content" ref={containerRef}>
+        {lines.length === 0 ? (
+          <div className="stream-empty">Empty</div>
+        ) : (
+          lines.map((text, i) => (
+            <div
+              key={i}
+              className="script-window-line"
+              dangerouslySetInnerHTML={{ __html: text }}
+            />
+          ))
+        )}
+      </div>
+    </div>
+  );
+}
+
+export default function Sidebar({ room, exp, streams, activeSpells, compass, scriptWindows, onMove }) {
   return (
     <div className="sidebar">
       <CollapsiblePanel title="Room">
@@ -37,6 +65,11 @@ export default function Sidebar({ room, exp, streams, activeSpells, compass, onM
           {activeSpells || "No active spells"}
         </div>
       </CollapsiblePanel>
+      {Object.entries(scriptWindows || {}).map(([name, win]) => (
+        <CollapsiblePanel key={name} title={win.title || name}>
+          <ScriptWindowPanel lines={win.lines} />
+        </CollapsiblePanel>
+      ))}
     </div>
   );
 }

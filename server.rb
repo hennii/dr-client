@@ -12,6 +12,7 @@ require_relative "lib/lich_launcher"
 require_relative "lib/game_connection"
 require_relative "lib/xml_parser"
 require_relative "lib/game_state"
+require_relative "lib/script_api"
 
 Faye::WebSocket.load_adapter("thin")
 
@@ -28,6 +29,7 @@ class GameApp < Sinatra::Base
   @@ws_mutex = Mutex.new
   @@game_connection = nil
   @@game_state = GameState.new
+  @@script_api = nil
   @@event_batch = []
   @@batch_mutex = Mutex.new
   @@flush_scheduled = false
@@ -136,14 +138,25 @@ class GameApp < Sinatra::Base
     )
     @@game_connection.connect
 
-    # Step 5: Cleanup on shutdown
+    # Step 5: Start ScriptApiServer for kor-scripts
+    puts "\n=== Starting ScriptApiServer ==="
+    @@script_api = ScriptApiServer.new(
+      port: 49167,
+      game_state: @@game_state,
+      on_window_event: ->(event) { broadcast(event) },
+      on_command: ->(cmd) { @@game_connection.send_command(cmd) },
+    )
+    @@script_api.start
+
+    # Step 6: Cleanup on shutdown
     at_exit do
       puts "\n=== Shutting down ==="
+      @@script_api&.stop
       @@game_connection&.close
       LichLauncher.shutdown
     end
 
-    # Step 6: Start web server
+    # Step 7: Start web server
     puts "\n=== Starting web server on http://localhost:4567 ==="
     run!
   end

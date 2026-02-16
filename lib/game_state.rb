@@ -44,6 +44,10 @@ class GameState
         text = event[:text] || ""
         parsed = parse_exp(skill, text)
         @state[:exp][skill] = parsed
+      when "text"
+        if event[:style] == "room_name"
+          @state[:room]["title"] = event[:text]&.strip
+        end
       when "stream"
         if event[:id] == "percWindow"
           @state[:active_spells] = event[:text] || ""
