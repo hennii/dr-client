@@ -203,6 +203,7 @@ class XmlParser
   def flush_text(prompt: false)
     return if @text_buffer.empty?
 
+    @text_buffer = fix_spacing(@text_buffer)
     event = { type: "text", text: @text_buffer }
     event[:bold] = true if @bold
     event[:mono] = true if @mono
@@ -221,12 +222,17 @@ class XmlParser
   def flush_push_stream
     return unless @in_push_stream
 
-    text = @push_buffer.join
+    text = fix_spacing(@push_buffer.join)
     unless text.strip.empty?
       emit(type: "stream", id: @in_push_stream, text: text)
     end
     @in_push_stream = nil
     @push_buffer = []
+  end
+
+  def fix_spacing(text)
+    # Insert space after sentence-ending punctuation when directly followed by a letter
+    text.gsub(/([.!?])([A-Z])/, '\1 \2')
   end
 
   def process_vitals(node)

@@ -564,6 +564,11 @@ html, body, #root {
 .exp-state {
   text-align: left;
 }
+.exp-mindstate {
+  color: var(--text-dim);
+  text-align: right;
+  padding-left: 8px;
+}
 
 /* Stream panel */
 .stream-panel {

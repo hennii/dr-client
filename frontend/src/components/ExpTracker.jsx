@@ -1,42 +1,57 @@
 import React, { useMemo } from "react";
 
 const LEARNING_COLORS = {
-  "clear": "#666666",
-  "dabbling": "#808080",
-  "perusing": "#999999",
-  "learning": "#aaaaaa",
-  "thoughtful": "#bbbb88",
-  "thinking": "#cccc66",
-  "considering": "#ccaa44",
-  "pondering": "#cc8833",
-  "ruminating": "#cc6622",
-  "understanding": "#cc5500",
-  "absorbing": "#dd6633",
-  "intrigued": "#dd7744",
-  "scrutinizing": "#dd8855",
-  "analyzing": "#ee9944",
-  "studious": "#eeaa33",
-  "focused": "#eebb22",
-  "very focused": "#eedd22",
-  "engaged": "#eeee44",
-  "very engaged": "#eeff44",
-  "cogitating": "#ccff44",
-  "fascinated": "#aaff44",
-  "captivated": "#88ff44",
-  "engrossed": "#66ff44",
-  "riveted": "#44ff44",
-  "very riveted": "#44ff88",
-  "rapt": "#44ffaa",
-  "very rapt": "#44ffcc",
-  "enthralled": "#44ffee",
-  "nearly locked": "#44eeff",
-  "mind lock": "#44ccff",
-  "attentive": "#44aaff",
+  "clear": "#666666",        //  0 - gray
+  "dabbling": "#777768",     //  1
+  "perusing": "#88886a",     //  2
+  "learning": "#99996c",     //  3
+  "thoughtful": "#aaaa6e",   //  4
+  "thinking": "#bbbb70",     //  5
+  "considering": "#c4bc60",  //  6
+  "pondering": "#ccbc50",    //  7
+  "ruminating": "#d4bc40",   //  8
+  "concentrating": "#dcbc30",//  9
+  "attentive": "#e4c020",    // 10
+  "deliberative": "#e8c410", // 11
+  "interested": "#ecc800",   // 12 - peak yellow
+  "examining": "#e4c800",    // 13
+  "understanding": "#dcca00",// 14
+  "absorbing": "#d0cc00",    // 15
+  "intrigued": "#c4ce00",    // 16
+  "scrutinizing": "#b4d000", // 17
+  "analyzing": "#a4d200",    // 18
+  "studious": "#94d400",     // 19
+  "focused": "#84d800",      // 20
+  "very focused": "#78dc00", // 21
+  "engaged": "#6ce000",      // 22
+  "very engaged": "#60e400", // 23
+  "cogitating": "#54e800",   // 24
+  "fascinated": "#4cec00",   // 25
+  "captivated": "#44f000",   // 26
+  "engrossed": "#40f200",    // 27
+  "riveted": "#3cf400",      // 28
+  "very riveted": "#38f600",// 29
+  "rapt": "#34f800",         // 30
+  "very rapt": "#32fa00",    // 31
+  "enthralled": "#31fc00",   // 32
+  "nearly locked": "#30fe00",// 33
+  "mind lock": "#2fff00",    // 34 - bright green
 };
+
+const MINDSTATE_NUM = Object.fromEntries(
+  Object.keys(LEARNING_COLORS).map((key, i) => [key, i])
+);
+const MINDSTATE_MAX = Object.keys(LEARNING_COLORS).length - 1;
 
 function learningColor(state) {
   if (!state) return "#666666";
   return LEARNING_COLORS[state.toLowerCase()] || "#999999";
+}
+
+function mindstateLabel(state) {
+  if (!state) return "-";
+  const num = MINDSTATE_NUM[state.toLowerCase()];
+  return num != null ? `${num}/${MINDSTATE_MAX}` : state;
 }
 
 export default function ExpTracker({ exp }) {
@@ -57,8 +72,9 @@ export default function ExpTracker({ exp }) {
           <tr>
             <th>Skill</th>
             <th>Rank</th>
-            <th>%</th>
-            <th>Learning</th>
+            <th></th>
+            <th>Mindstate</th>
+            <th></th>
           </tr>
         </thead>
         <tbody>
@@ -73,6 +89,7 @@ export default function ExpTracker({ exp }) {
               >
                 {data.state || "-"}
               </td>
+              <td className="exp-mindstate" style={{ color: learningColor(data.state) }}>{mindstateLabel(data.state)}</td>
             </tr>
           ))}
         </tbody>

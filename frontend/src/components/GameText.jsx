@@ -29,16 +29,24 @@ export default function GameText({ lines, onClick }) {
         if (line.segments) {
           return (
             <div key={i} className={`game-line${line.streamId ? ` stream-${line.streamId}` : ""}`}>
-              {line.segments.map((seg, j) => {
+              {line.segments.map((seg, j, arr) => {
+                // Add space between segments when boundary has no whitespace
+                const prev = arr[j - 1];
+                const needsSpace = prev
+                  && prev.text.length > 0
+                  && seg.text.length > 0
+                  && !/\s$/.test(prev.text)
+                  && !/^\s/.test(seg.text);
                 const classes = [
                   seg.style && `style-${seg.style}`,
                   seg.bold && "bold",
                   seg.mono && "mono",
                 ].filter(Boolean).join(" ");
+                const text = needsSpace ? " " + seg.text : seg.text;
                 return classes ? (
-                  <span key={j} className={classes}>{seg.text}</span>
+                  <span key={j} className={classes}>{text}</span>
                 ) : (
-                  <span key={j}>{seg.text}</span>
+                  <span key={j}>{text}</span>
                 );
               })}
             </div>

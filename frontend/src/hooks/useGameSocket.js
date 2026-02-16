@@ -27,6 +27,11 @@ function appendLines(existing, newLine, max) {
   return updated.length > max ? updated.slice(-max) : updated;
 }
 
+// Insert space after sentence-ending punctuation directly followed by a letter
+function fixSpacing(text) {
+  return text.replace(/([.!?])([A-Za-z])/g, '$1 $2');
+}
+
 const DAMAGE_RE = /The \S+ lands .+?\(\d+\/\d+\).+?\./;
 
 function splitCombatDamage(text) {
@@ -82,7 +87,7 @@ function reducer(state, action) {
       };
     case "text": {
       const seg = {
-        text: action.text,
+        text: fixSpacing(action.text),
         style: action.style || null,
         bold: action.bold || false,
         mono: action.mono || false,
@@ -123,7 +128,8 @@ function reducer(state, action) {
       };
     }
     case "stream": {
-      const streamLine = { text: action.text, ts: Date.now() };
+      const fixedText = fixSpacing(action.text);
+      const streamLine = { text: fixedText, ts: Date.now() };
       const streamId = action.id;
 
       // Update per-stream buffer
@@ -137,7 +143,7 @@ function reducer(state, action) {
       if (showInMain) {
         if (streamId === "combat") {
           // Split combat text so bracketed status/roundtime appear on their own lines
-          const parts = action.text.split(/\s*(\[[^\]]*\])\s*/g).filter(Boolean);
+          const parts = fixedText.split(/\s*(\[[^\]]*\])\s*/g).filter(Boolean);
           for (const part of parts) {
             let segments;
             if (part.startsWith("[")) {
@@ -151,7 +157,7 @@ function reducer(state, action) {
           }
         } else {
           const gameLine = {
-            segments: [{ text: action.text, style: "stream" }],
+            segments: [{ text: fixedText, style: "stream" }],
             streamId: streamId,
           };
           newGameLines = appendLines(newGameLines, gameLine, MAX_LINES);
