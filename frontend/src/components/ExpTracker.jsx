@@ -72,7 +72,7 @@ export default function ExpTracker({ exp }) {
           <tr>
             <th>Skill</th>
             <th>Rank</th>
-            <th></th>
+            {/* <th></th> */}
             <th>Mindstate</th>
             <th></th>
           </tr>
@@ -81,8 +81,8 @@ export default function ExpTracker({ exp }) {
           {skills.map(([name, data]) => (
             <tr key={name}>
               <td className="exp-skill">{name}</td>
-              <td className="exp-rank">{data.rank}</td>
-              <td className="exp-pct">{data.percent}%</td>
+              <td className="exp-rank">{data.rank} <span className="exp-pct">{data.percent}%</span></td>
+              {/* <td className="exp-pct"></td> */}
               <td
                 className="exp-state"
                 style={{ color: learningColor(data.state) }}
