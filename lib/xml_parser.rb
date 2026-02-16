@@ -1,0 +1,227 @@
+require "nokogiri"
+
+class XmlParser
+  attr_accessor :on_event
+
+  def initialize
+    @on_event = nil
+    @in_push_stream = nil
+    @push_buffer = []
+    @text_buffer = ""
+    @bold = false
+    @mono = false
+    @current_style = nil
+    @left_hand = ""
+    @right_hand = ""
+  end
+
+  def feed(line)
+    # Preprocess: fix unescaped ampersands
+    line = line.gsub(/&(?!#?[a-z0-9]+;)/i, "&amp;")
+
+    # Convert self-closing pushStream/popStream
+    line = line.gsub(/<pushStream([^>]*)\/>/, '<pushStream\1>')
+    line = line.gsub(/<popStream[^>]*\/>/, '</pushStream>')
+
+    parse_line(line)
+  end
+
+  private
+
+  def parse_line(line)
+    # Wrap in root element for fragment parsing
+    begin
+      doc = Nokogiri::HTML.fragment("<root>#{line}</root>")
+    rescue => e
+      # Fallback: wrap in CDATA
+      escaped = "<root><![CDATA[#{line}]]></root>"
+      begin
+        doc = Nokogiri::HTML.fragment(escaped)
+      rescue
+        emit(type: "text", text: line)
+        return
+      end
+    end
+
+    root = doc.at("root") || doc
+    process_nodes(root.children)
+  end
+
+  def process_nodes(nodes)
+    nodes.each { |node| process_node(node) }
+  end
+
+  def process_node(node)
+    case node.name
+    when "text"
+      handle_text(node.text)
+
+    when "pushstream"
+      id = node["id"]
+      if @in_push_stream.nil?
+        @in_push_stream = id
+        @push_buffer = []
+      end
+      process_nodes(node.children)
+      # If this tag had children and closes, pop stream
+      if node.children.any?
+        flush_push_stream
+      end
+
+    when "prompt"
+      flush_text(prompt: true)
+      time = node["time"]&.to_i
+      emit(type: "prompt", time: time)
+
+    when "style"
+      id = node["id"]
+      case id
+      when "roomName"
+        @current_style = "room_name"
+      else
+        @current_style = nil
+      end
+
+    when "preset"
+      id = node["id"]
+      style = case id
+              when "speech" then "speech"
+              when "thought" then "thought"
+              when "whisper" then "whisper"
+              when "roomDesc" then "room_desc"
+              else id
+              end
+      old_style = @current_style
+      @current_style = style
+      process_nodes(node.children)
+      flush_text
+      @current_style = old_style
+
+    when "dialogdata"
+      process_vitals(node) if node["id"] == "minivitals"
+
+    when "progressbar"
+      # Handled inside dialogdata
+      return
+
+    when "compass"
+      dirs = node.css("dir").map { |d| d["value"] }
+      emit(type: "compass", dirs: dirs)
+
+    when "roundtime"
+      emit(type: "roundtime", value: node["value"]&.to_i)
+
+    when "casttime"
+      emit(type: "casttime", value: node["value"]&.to_i)
+
+    when "indicator"
+      emit(type: "indicator", id: node["id"], visible: node["visible"] == "y")
+
+    when "left"
+      @left_hand = node.text.strip
+      emit(type: "hands", left: @left_hand, right: @right_hand)
+
+    when "right"
+      @right_hand = node.text.strip
+      emit(type: "hands", left: @left_hand, right: @right_hand)
+
+    when "spell"
+      emit(type: "spell", name: node.text.strip)
+
+    when "component"
+      handle_component(node)
+
+    when "pushbold"
+      @bold = true
+
+    when "popbold"
+      @bold = false
+
+    when "b"
+      old_bold = @bold
+      @bold = true
+      process_nodes(node.children)
+      @bold = old_bold
+
+    when "d"
+      process_nodes(node.children) if node.children.any?
+      handle_text(node.text) if node.children.empty?
+
+    when "output"
+      @mono = (node["class"] == "mono")
+      emit(type: "output_mode", mono: @mono)
+
+    when "app"
+      name = node["char"]
+      emit(type: "char_name", name: name) if name
+
+    when "root"
+      process_nodes(node.children)
+
+    else
+      # Unknown tag — process children for any text content
+      process_nodes(node.children)
+    end
+  end
+
+  def handle_text(text)
+    return if text.nil? || text.empty?
+
+    if @in_push_stream
+      @push_buffer << text
+    else
+      @text_buffer << text
+    end
+  end
+
+  def flush_text(prompt: false)
+    return if @text_buffer.empty?
+
+    event = { type: "text", text: @text_buffer }
+    event[:bold] = true if @bold
+    event[:mono] = true if @mono
+    event[:style] = @current_style if @current_style
+    event[:prompt] = true if prompt
+    emit(event)
+    @text_buffer = ""
+  end
+
+  def flush_push_stream
+    return unless @in_push_stream
+
+    text = @push_buffer.join
+    unless text.strip.empty?
+      emit(type: "stream", id: @in_push_stream, text: text)
+    end
+    @in_push_stream = nil
+    @push_buffer = []
+  end
+
+  def process_vitals(node)
+    node.css("progressbar").each do |bar|
+      emit(type: "vitals", id: bar["id"], value: bar["value"]&.to_i)
+    end
+  end
+
+  def handle_component(node)
+    id = node["id"]
+    return unless id
+
+    if id =~ /^exp (.+)$/i
+      skill = $1.strip
+      text = node.text.strip
+      emit(type: "exp", skill: skill, text: text)
+    elsif id =~ /^room (desc|objs|players|exits)$/i
+      field = $1.downcase
+      emit(type: "room", field: field, value: node.inner_html.strip)
+    else
+      # Other components — emit generically
+      emit(type: "component", id: id, value: node.text.strip)
+    end
+  end
+
+  def emit(event)
+    flush_text if event[:type] != "text" && !@text_buffer.empty?
+    @on_event&.call(event)
+  end
+end
