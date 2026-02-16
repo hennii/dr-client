@@ -16,11 +16,11 @@ html, body, #root {
 .app {
   display: grid;
   grid-template-rows: 1fr auto auto;
-  grid-template-columns: 1fr 4px 280px;
+  grid-template-columns: 280px 4px 1fr 4px 280px;
   grid-template-areas:
-    "game     divider  sidebar"
-    "toolbar  divider  sidebar"
-    "input    divider  sidebar";
+    "left-sidebar  left-divider  game     divider  sidebar"
+    "left-sidebar  left-divider  toolbar  divider  sidebar"
+    "left-sidebar  left-divider  input    divider  sidebar";
   height: 100%;
 }
 
@@ -278,6 +278,26 @@ html, body, #root {
   background: #555;
 }
 
+/* ===== Left Sidebar ===== */
+.left-sidebar {
+  grid-area: left-sidebar;
+  background: #1e1e1e;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+}
+
+/* ===== Left Sidebar Divider ===== */
+.left-sidebar-divider {
+  grid-area: left-divider;
+  background: #333;
+  cursor: col-resize;
+  transition: background 0.15s;
+}
+.left-sidebar-divider:hover {
+  background: #555;
+}
+
 /* ===== Sidebar ===== */
 .sidebar {
   grid-area: sidebar;
@@ -510,6 +530,7 @@ html, body, #root {
 
 /* ===== Scrollbar styling ===== */
 .game-text::-webkit-scrollbar,
+.left-sidebar::-webkit-scrollbar,
 .sidebar::-webkit-scrollbar,
 .exp-tracker::-webkit-scrollbar,
 .stream-content::-webkit-scrollbar,
@@ -517,6 +538,7 @@ html, body, #root {
   width: 6px;
 }
 .game-text::-webkit-scrollbar-track,
+.left-sidebar::-webkit-scrollbar-track,
 .sidebar::-webkit-scrollbar-track,
 .exp-tracker::-webkit-scrollbar-track,
 .stream-content::-webkit-scrollbar-track,
@@ -524,6 +546,7 @@ html, body, #root {
   background: transparent;
 }
 .game-text::-webkit-scrollbar-thumb,
+.left-sidebar::-webkit-scrollbar-thumb,
 .sidebar::-webkit-scrollbar-thumb,
 .exp-tracker::-webkit-scrollbar-thumb,
 .stream-content::-webkit-scrollbar-thumb,
@@ -532,6 +555,7 @@ html, body, #root {
   border-radius: 3px;
 }
 .game-text::-webkit-scrollbar-thumb:hover,
+.left-sidebar::-webkit-scrollbar-thumb:hover,
 .sidebar::-webkit-scrollbar-thumb:hover,
 .exp-tracker::-webkit-scrollbar-thumb:hover,
 .stream-content::-webkit-scrollbar-thumb:hover,

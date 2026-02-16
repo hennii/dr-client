@@ -20,8 +20,8 @@ import Compass from "./Compass";
 
 const LAYOUT_KEY = "dr-client-layout";
 
-const DEFAULT_PANEL_ORDER = ["room", "compass", "exp", "thoughts", "spells"];
-const DEFAULT_COLLAPSED = ["thoughts", "spells"];
+const DEFAULT_PANEL_ORDER = ["room", "compass", "spells"];
+const DEFAULT_COLLAPSED = ["spells"];
 const DEFAULT_PANEL_SIZES = {
   exp: 300,
   thoughts: 200,
@@ -159,6 +159,106 @@ function getPanelTitle(id, scriptWindows) {
       }
       return id;
   }
+}
+
+const LEFT_DEFAULT_PANEL_ORDER = ["exp", "thoughts"];
+const LEFT_DEFAULT_COLLAPSED = ["thoughts"];
+const LEFT_DEFAULT_PANEL_SIZES = {
+  exp: 300,
+  thoughts: 200,
+};
+
+export function LeftSidebar({ exp, streams }) {
+  const [panelOrder, setPanelOrder] = useState(() => {
+    const layout = loadLayout();
+    return layout.leftPanelOrder || LEFT_DEFAULT_PANEL_ORDER;
+  });
+
+  const [collapsedPanels, setCollapsedPanels] = useState(() => {
+    const layout = loadLayout();
+    return new Set(layout.leftCollapsedPanels || LEFT_DEFAULT_COLLAPSED);
+  });
+
+  const [panelSizes, setPanelSizes] = useState(() => {
+    const layout = loadLayout();
+    return layout.leftPanelSizes || LEFT_DEFAULT_PANEL_SIZES;
+  });
+
+  const sensors = useSensors(
+    useSensor(PointerSensor, { activationConstraint: { distance: 5 } })
+  );
+
+  const handleDragEnd = useCallback((event) => {
+    const { active, over } = event;
+    if (!over || active.id === over.id) return;
+    const oldIndex = panelOrder.indexOf(active.id);
+    const newIndex = panelOrder.indexOf(over.id);
+    const newOrder = arrayMove(panelOrder, oldIndex, newIndex);
+    setPanelOrder(newOrder);
+    saveLayout({ leftPanelOrder: newOrder });
+  }, [panelOrder]);
+
+  const togglePanel = useCallback((id) => {
+    setCollapsedPanels((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      saveLayout({ leftCollapsedPanels: [...next] });
+      return next;
+    });
+  }, []);
+
+  const onResizeStart = useCallback((e, panelId, bodyEl) => {
+    e.preventDefault();
+    const startY = e.clientY;
+    const startHeight = bodyEl ? bodyEl.offsetHeight : (panelSizes[panelId] || 200);
+
+    const onMouseMove = (e) => {
+      const delta = e.clientY - startY;
+      const newHeight = Math.max(50, startHeight + delta);
+      setPanelSizes((prev) => ({ ...prev, [panelId]: newHeight }));
+    };
+
+    const onMouseUp = () => {
+      document.removeEventListener("mousemove", onMouseMove);
+      document.removeEventListener("mouseup", onMouseUp);
+      document.body.style.cursor = "";
+      document.body.style.userSelect = "";
+      setPanelSizes((prev) => {
+        saveLayout({ leftPanelSizes: prev });
+        return prev;
+      });
+    };
+
+    document.body.style.cursor = "row-resize";
+    document.body.style.userSelect = "none";
+    document.addEventListener("mousemove", onMouseMove);
+    document.addEventListener("mouseup", onMouseUp);
+  }, [panelSizes]);
+
+  const contentProps = { exp, streams };
+
+  return (
+    <div className="left-sidebar">
+      <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
+        <SortableContext items={panelOrder} strategy={verticalListSortingStrategy}>
+          {panelOrder.map((id) => (
+            <SortablePanel
+              key={id}
+              id={id}
+              title={getPanelTitle(id)}
+              open={!collapsedPanels.has(id)}
+              onToggle={() => togglePanel(id)}
+              maxHeight={panelSizes[id]}
+              onResizeStart={onResizeStart}
+            >
+              {renderPanelContent(id, contentProps)}
+            </SortablePanel>
+          ))}
+        </SortableContext>
+      </DndContext>
+    </div>
+  );
 }
 
 export default function Sidebar({ room, exp, streams, activeSpells, compass, scriptWindows, onMove }) {

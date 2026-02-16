@@ -3,12 +3,13 @@ import { useGameSocket } from "./hooks/useGameSocket";
 import Toolbar from "./components/Toolbar";
 import GameText from "./components/GameText";
 import CommandInput from "./components/CommandInput";
-import Sidebar from "./components/Sidebar";
+import Sidebar, { LeftSidebar } from "./components/Sidebar";
 
 const LAYOUT_KEY = "dr-client-layout";
 const DEFAULT_SIDEBAR_WIDTH = 280;
+const DEFAULT_LEFT_SIDEBAR_WIDTH = 280;
 const MIN_SIDEBAR_WIDTH = 200;
-const MAX_SIDEBAR_WIDTH = 600;
+const MAX_SIDEBAR_WIDTH = 1200;
 
 function loadLayout() {
   try {
@@ -39,6 +40,11 @@ export default function App() {
   const [sidebarWidth, setSidebarWidth] = useState(() => {
     const layout = loadLayout();
     return layout.sidebarWidth || DEFAULT_SIDEBAR_WIDTH;
+  });
+
+  const [leftSidebarWidth, setLeftSidebarWidth] = useState(() => {
+    const layout = loadLayout();
+    return layout.leftSidebarWidth || DEFAULT_LEFT_SIDEBAR_WIDTH;
   });
 
   const dragging = useRef(false);
@@ -72,11 +78,44 @@ export default function App() {
     document.addEventListener("mouseup", onMouseUp);
   }, []);
 
+  const leftDragging = useRef(false);
+
+  const onLeftDividerMouseDown = useCallback((e) => {
+    e.preventDefault();
+    leftDragging.current = true;
+    document.body.style.cursor = "col-resize";
+    document.body.style.userSelect = "none";
+
+    const onMouseMove = (e) => {
+      if (!leftDragging.current) return;
+      const newWidth = e.clientX;
+      const clamped = Math.min(MAX_SIDEBAR_WIDTH, Math.max(MIN_SIDEBAR_WIDTH, newWidth));
+      setLeftSidebarWidth(clamped);
+    };
+
+    const onMouseUp = () => {
+      leftDragging.current = false;
+      document.body.style.cursor = "";
+      document.body.style.userSelect = "";
+      document.removeEventListener("mousemove", onMouseMove);
+      document.removeEventListener("mouseup", onMouseUp);
+      setLeftSidebarWidth((w) => {
+        saveLayout({ leftSidebarWidth: w });
+        return w;
+      });
+    };
+
+    document.addEventListener("mousemove", onMouseMove);
+    document.addEventListener("mouseup", onMouseUp);
+  }, []);
+
   return (
     <div
       className="app"
-      style={{ gridTemplateColumns: `1fr 4px ${sidebarWidth}px` }}
+      style={{ gridTemplateColumns: `${leftSidebarWidth}px 4px 1fr 4px ${sidebarWidth}px` }}
     >
+      <LeftSidebar exp={exp} streams={streams} />
+      <div className="left-sidebar-divider" onMouseDown={onLeftDividerMouseDown} />
       <GameText lines={gameLines} onClick={focusInput} />
       <Toolbar
         vitals={vitals}
