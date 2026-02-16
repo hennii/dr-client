@@ -1,4 +1,4 @@
-import React, { useRef, useEffect, useState } from "react";
+import React, { useRef, useEffect } from "react";
 
 // LNet: [Channel]-Game:Player: "message"
 const LNET_RE = /^(\[[^\]]+\]-[^:]+:[^:]+:)\s*(.*)/;
@@ -25,25 +25,36 @@ function ThoughtLine({ text }) {
 }
 
 export default function StreamPanel({ title, lines, colorizeThoughts }) {
-  const containerRef = useRef(null);
-  const [autoScroll, setAutoScroll] = useState(true);
+  const innerRef = useRef(null);
+  const scrollElRef = useRef(null);
+  const autoScroll = useRef(true);
 
+  // Find the scroll container (the .sidebar-panel-body parent) and listen for user scrolls
   useEffect(() => {
-    if (autoScroll && containerRef.current) {
-      containerRef.current.scrollTop = containerRef.current.scrollHeight;
-    }
-  }, [lines, autoScroll]);
+    const scrollEl = innerRef.current?.closest(".sidebar-panel-body");
+    scrollElRef.current = scrollEl;
+    if (!scrollEl) return;
 
-  function handleScroll() {
-    const el = containerRef.current;
-    if (!el) return;
-    const atBottom = el.scrollHeight - el.scrollTop - el.clientHeight < 30;
-    setAutoScroll(atBottom);
-  }
+    const onScroll = () => {
+      autoScroll.current =
+        scrollEl.scrollHeight - scrollEl.scrollTop - scrollEl.clientHeight < 30;
+    };
+
+    scrollEl.addEventListener("scroll", onScroll, { passive: true });
+    return () => scrollEl.removeEventListener("scroll", onScroll);
+  }, []);
+
+  // When lines change, scroll to bottom if we were already there
+  useEffect(() => {
+    const el = scrollElRef.current;
+    if (autoScroll.current && el) {
+      el.scrollTop = el.scrollHeight;
+    }
+  }, [lines]);
 
   return (
-    <div className="stream-panel">
-      <div className="stream-content" ref={containerRef} onScroll={handleScroll}>
+    <div className="stream-panel" ref={innerRef}>
+      <div className="stream-content">
         {(!lines || lines.length === 0) ? (
           <div className="stream-empty">No {title.toLowerCase()} yet</div>
         ) : (
