@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useRef, useCallback } from "react";
 import { useGameSocket } from "./hooks/useGameSocket";
 import Toolbar from "./components/Toolbar";
 import GameText from "./components/GameText";
@@ -11,16 +11,21 @@ export default function App() {
     connected, exp, activeSpells, streams, scriptWindows, roundtime, casttime, send,
   } = useGameSocket();
 
+  const inputRef = useRef(null);
+  const focusInput = useCallback(() => {
+    inputRef.current?.focus();
+  }, []);
+
   return (
     <div className="app">
+      <GameText lines={gameLines} onClick={focusInput} />
       <Toolbar
         vitals={vitals}
         hands={hands}
         spell={spell}
         indicators={indicators}
       />
-      <GameText lines={gameLines} />
-      <CommandInput onSend={send} roundtime={roundtime} casttime={casttime} />
+      <CommandInput onSend={send} roundtime={roundtime} casttime={casttime} inputRef={inputRef} />
       <Sidebar
         room={room}
         exp={exp}

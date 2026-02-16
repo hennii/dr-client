@@ -41,7 +41,7 @@ class GameApp < Sinatra::Base
   get "/ws" do
     return [400, {}, ["Not a WebSocket request"]] unless Faye::WebSocket.websocket?(env)
 
-    ws = Faye::WebSocket.new(env)
+    ws = Faye::WebSocket.new(env, nil, ping: 15)
 
     ws.on :open do |_event|
       puts "[ws] Client connected"
@@ -58,8 +58,8 @@ class GameApp < Sinatra::Base
       end
     end
 
-    ws.on :close do |_event|
-      puts "[ws] Client disconnected"
+    ws.on :close do |event|
+      puts "[ws] Client disconnected (code=#{event.code}, reason=#{event.reason})"
       @@ws_mutex.synchronize { @@ws_clients.delete(ws) }
     end
 
@@ -89,7 +89,11 @@ class GameApp < Sinatra::Base
     json = batch.to_json
     @@ws_mutex.synchronize do
       @@ws_clients.each do |ws|
-        ws.send(json) rescue nil
+        begin
+          ws.send(json)
+        rescue => e
+          puts "[ws] Send error: #{e.message}"
+        end
       end
     end
   end

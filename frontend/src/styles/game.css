@@ -15,11 +15,11 @@ html, body, #root {
 /* ===== App Grid Layout ===== */
 .app {
   display: grid;
-  grid-template-rows: auto 1fr auto;
+  grid-template-rows: 1fr auto auto;
   grid-template-columns: 1fr 280px;
   grid-template-areas:
-    "toolbar  toolbar"
     "game     sidebar"
+    "toolbar  sidebar"
     "input    sidebar";
   height: 100%;
 }
@@ -157,11 +157,12 @@ html, body, #root {
 
 .game-line {
   min-height: 1em;
+  margin-bottom: 1em;
 }
 
 /* Style classes */
 .style-room_name {
-  color: #ffffff;
+  color: #eacd95; 
   font-weight: bold;
 }
 .style-room_desc {
@@ -182,7 +183,15 @@ html, body, #root {
 }
 .bold {
   font-weight: bold;
-  color: #ffffff;
+  color: #ff6b6b;
+}
+.style-room_players {
+  color: #8884d8;
+  font-weight: bold;
+}
+.style-disconnect {
+  color: #e05555;
+  text-align: center;
 }
 .mono {
   white-space: pre;
@@ -304,9 +313,13 @@ html, body, #root {
   color: #b0b0b0;
   margin-bottom: 4px;
 }
-.room-objs, .room-players, .room-exits {
+.room-objs, .room-exits {
   margin-top: 3px;
   color: #999;
+}
+.room-players {
+  margin-top: 3px;
+  color: #8884d8;
 }
 .room-section-label {
   color: #777;

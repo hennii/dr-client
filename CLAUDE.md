@@ -73,9 +73,31 @@ TCP server, line-based protocol. Request: `COMMAND NAME?arg1&arg2\n`, Response: 
 - **Frostbite** (`~/frostbite-qt6`) — The Qt6 client being replaced. Primary reference for protocol implementation.
 - **Lich5** (`~/dragonrealms/lich`) — Ruby scripting engine that proxies between client and game server.
 
-## Development Notes
+## Development
+
+### Running
+
+1. Start the backend: `bundle exec ruby server.rb`
+2. Open `http://localhost:4567`
+
+The backend serves the built frontend from `frontend/dist/`.
+
+### Frontend Development (hot reload)
+
+For live CSS/JS changes without rebuilding:
+
+1. Keep the backend running on port 4567
+2. Start Vite dev server: `cd frontend && npm run dev`
+3. Open `http://localhost:5174` (not 4567)
+
+Vite proxies `/ws` to the Sinatra backend automatically. Changes to source files hot-reload instantly.
+
+To build for production: `cd frontend && npm run build`
+
+### Notes
 
 - See `PLAN.md` for the full project plan and phased build order
 - The XML parser is the most complex backend component — the game stream has many edge cases
 - When implementing ScriptApiServer commands, test against `kor_frostbite_client.rb` to ensure compatibility
+- ScriptApiServer uses literal `\0` (backslash + zero) as response terminator, NOT a null byte — matching Frostbite's C++ `tr("\\0")` behavior
 - Frontend uses no TypeScript — plain JSX only

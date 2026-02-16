@@ -32,7 +32,15 @@ function reducer(state, action) {
     case "connected":
       return { ...state, connected: true };
     case "disconnected":
-      return { ...state, connected: false };
+      return {
+        ...state,
+        connected: false,
+        gameLines: appendLines(
+          state.gameLines,
+          { segments: [{ text: "*** Connection lost ***", style: "disconnect", bold: true }] },
+          MAX_LINES
+        ),
+      };
     case "snapshot":
       return {
         ...state,
@@ -49,16 +57,39 @@ function reducer(state, action) {
         activeSpells: action.state.active_spells || "",
       };
     case "text": {
-      const line = {
+      const seg = {
         text: action.text,
         style: action.style || null,
         bold: action.bold || false,
         mono: action.mono || false,
-        prompt: action.prompt || false,
       };
+      if (action.prompt) {
+        return {
+          ...state,
+          gameLines: appendLines(
+            state.gameLines,
+            { segments: [seg], prompt: true },
+            MAX_LINES
+          ),
+        };
+      }
+      // Merge with previous line if it hasn't been ended by a line_break
+      const prev = state.gameLines[state.gameLines.length - 1];
+      if (prev && !prev.prompt && !prev.ended && prev.segments) {
+        const merged = [...state.gameLines];
+        merged[merged.length - 1] = {
+          ...prev,
+          segments: [...prev.segments, seg],
+        };
+        return { ...state, gameLines: merged };
+      }
       return {
         ...state,
-        gameLines: appendLines(state.gameLines, line, MAX_LINES),
+        gameLines: appendLines(
+          state.gameLines,
+          { segments: [seg], prompt: false },
+          MAX_LINES
+        ),
       };
     }
     case "stream": {
@@ -75,8 +106,7 @@ function reducer(state, action) {
       let newGameLines = state.gameLines;
       if (showInMain) {
         const gameLine = {
-          text: action.text,
-          style: "stream",
+          segments: [{ text: action.text, style: "stream" }],
           streamId: streamId,
         };
         newGameLines = appendLines(state.gameLines, gameLine, MAX_LINES);
@@ -91,6 +121,15 @@ function reducer(state, action) {
         gameLines: newGameLines,
         activeSpells: newActiveSpells,
       };
+    }
+    case "line_break": {
+      const last = state.gameLines[state.gameLines.length - 1];
+      if (last && !last.ended && last.segments) {
+        const updated = [...state.gameLines];
+        updated[updated.length - 1] = { ...last, ended: true };
+        return { ...state, gameLines: updated };
+      }
+      return state;
     }
     case "vitals":
       return {
@@ -181,42 +220,56 @@ function parseExp(skill, text) {
 export function useGameSocket() {
   const [state, dispatch] = useReducer(reducer, initialState);
   const wsRef = useRef(null);
+  const reconnectTimer = useRef(null);
+  const intentionalClose = useRef(false);
 
   useEffect(() => {
-    const protocol = window.location.protocol === "https:" ? "wss:" : "ws:";
-    const wsUrl = `${protocol}//${window.location.host}/ws`;
-    const ws = new WebSocket(wsUrl);
-    wsRef.current = ws;
+    function connect() {
+      const protocol = window.location.protocol === "https:" ? "wss:" : "ws:";
+      const wsUrl = `${protocol}//${window.location.host}/ws`;
+      const ws = new WebSocket(wsUrl);
+      wsRef.current = ws;
 
-    ws.onopen = () => {
-      console.log("[ws] Connected");
-      dispatch({ type: "connected" });
-    };
+      ws.onopen = () => {
+        console.log("[ws] Connected");
+        dispatch({ type: "connected" });
+      };
 
-    ws.onmessage = (event) => {
-      try {
-        const data = JSON.parse(event.data);
-        if (Array.isArray(data)) {
-          dispatch({ type: "batch", events: data });
-        } else {
-          dispatch(data);
+      ws.onmessage = (event) => {
+        try {
+          const data = JSON.parse(event.data);
+          if (Array.isArray(data)) {
+            dispatch({ type: "batch", events: data });
+          } else {
+            dispatch(data);
+          }
+        } catch (e) {
+          console.error("[ws] Parse error:", e);
         }
-      } catch (e) {
-        console.error("[ws] Parse error:", e);
-      }
-    };
+      };
 
-    ws.onclose = () => {
-      console.log("[ws] Disconnected");
-      dispatch({ type: "disconnected" });
-    };
+      ws.onclose = (event) => {
+        console.log(`[ws] Disconnected (code=${event.code})`);
+        dispatch({ type: "disconnected" });
+        if (!intentionalClose.current) {
+          reconnectTimer.current = setTimeout(() => {
+            console.log("[ws] Reconnecting...");
+            connect();
+          }, 2000);
+        }
+      };
 
-    ws.onerror = (err) => {
-      console.error("[ws] Error:", err);
-    };
+      ws.onerror = (err) => {
+        console.error("[ws] Error:", err);
+      };
+    }
+
+    connect();
 
     return () => {
-      ws.close();
+      intentionalClose.current = true;
+      clearTimeout(reconnectTimer.current);
+      wsRef.current?.close();
     };
   }, []);
 

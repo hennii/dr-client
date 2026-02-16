@@ -35,6 +35,7 @@ class XmlParser
     # Each feed() call is one \r\n-delimited line from the game server.
     # Flush any remaining text as a complete line.
     flush_text
+    emit(type: "line_break")
   end
 
   private
@@ -191,7 +192,11 @@ class XmlParser
     event = { type: "text", text: @text_buffer }
     event[:bold] = true if @bold
     event[:mono] = true if @mono
-    event[:style] = @current_style if @current_style
+    if @current_style
+      event[:style] = @current_style
+    elsif @text_buffer.strip.start_with?("Also here:")
+      event[:style] = "room_players"
+    end
     event[:prompt] = true if prompt
     emit(event)
     @text_buffer = ""

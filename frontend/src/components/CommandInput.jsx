@@ -36,11 +36,12 @@ function RoundtimeBar({ roundtime, casttime }) {
   );
 }
 
-export default function CommandInput({ onSend, roundtime, casttime }) {
+export default function CommandInput({ onSend, roundtime, casttime, inputRef: externalRef }) {
   const [value, setValue] = useState("");
   const [history, setHistory] = useState([]);
   const [historyIndex, setHistoryIndex] = useState(-1);
-  const inputRef = useRef(null);
+  const localRef = useRef(null);
+  const inputRef = externalRef || localRef;
 
   const handleKeyDown = useCallback(
     (e) => {
