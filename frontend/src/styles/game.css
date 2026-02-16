@@ -16,11 +16,11 @@ html, body, #root {
 .app {
   display: grid;
   grid-template-rows: 1fr auto auto;
-  grid-template-columns: 1fr 280px;
+  grid-template-columns: 1fr 4px 280px;
   grid-template-areas:
-    "game     sidebar"
-    "toolbar  sidebar"
-    "input    sidebar";
+    "game     divider  sidebar"
+    "toolbar  divider  sidebar"
+    "input    divider  sidebar";
   height: 100%;
 }
 
@@ -189,6 +189,9 @@ html, body, #root {
   color: #8884d8;
   font-weight: bold;
 }
+.style-room_objs {
+  color: #d4a853;
+}
 .style-disconnect {
   color: #e05555;
   text-align: center;
@@ -264,11 +267,21 @@ html, body, #root {
   text-shadow: 0 0 2px rgba(0,0,0,0.8);
 }
 
+/* ===== Sidebar Divider ===== */
+.sidebar-divider {
+  grid-area: divider;
+  background: #333;
+  cursor: col-resize;
+  transition: background 0.15s;
+}
+.sidebar-divider:hover {
+  background: #555;
+}
+
 /* ===== Sidebar ===== */
 .sidebar {
   grid-area: sidebar;
   background: #1e1e1e;
-  border-left: 1px solid #333;
   overflow-y: auto;
   display: flex;
   flex-direction: column;
@@ -283,14 +296,36 @@ html, body, #root {
   gap: 6px;
   padding: 6px 10px;
   background: #252525;
-  cursor: pointer;
+  cursor: grab;
   user-select: none;
   font-size: 12px;
   font-weight: bold;
   color: #aaa;
 }
+.sidebar-panel-header:active {
+  cursor: grabbing;
+}
 .sidebar-panel-header:hover {
   background: #2a2a2a;
+}
+
+/* Drag grip indicator */
+.drag-grip {
+  color: #555;
+  font-size: 10px;
+  letter-spacing: 1px;
+  margin-left: auto;
+}
+
+/* Panel resize handle */
+.panel-resize-handle {
+  height: 4px;
+  cursor: row-resize;
+  background: transparent;
+  transition: background 0.15s;
+}
+.panel-resize-handle:hover {
+  background: #444;
 }
 .panel-toggle {
   font-size: 10px;
@@ -393,7 +428,6 @@ html, body, #root {
 
 /* Exp tracker */
 .exp-tracker {
-  max-height: 300px;
   overflow-y: auto;
 }
 .exp-empty {
@@ -436,10 +470,8 @@ html, body, #root {
 
 /* Stream panel */
 .stream-panel {
-  max-height: 200px;
 }
 .stream-content {
-  max-height: 180px;
   overflow-y: auto;
   font-size: 12px;
   line-height: 1.3;
@@ -463,10 +495,8 @@ html, body, #root {
 
 /* Script windows */
 .script-window-panel {
-  max-height: 200px;
 }
 .script-window-content {
-  max-height: 180px;
   overflow-y: auto;
   font-size: 12px;
   line-height: 1.3;

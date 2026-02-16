@@ -196,6 +196,8 @@ class XmlParser
       event[:style] = @current_style
     elsif @text_buffer.strip.start_with?("Also here:")
       event[:style] = "room_players"
+    elsif @text_buffer.strip.start_with?("You also see")
+      event[:style] = "room_objs"
     end
     event[:prompt] = true if prompt
     emit(event)
