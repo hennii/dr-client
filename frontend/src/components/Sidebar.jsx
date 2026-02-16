@@ -126,7 +126,7 @@ function renderPanelContent(id, props) {
     case "exp":
       return <ExpTracker exp={props.exp} />;
     case "thoughts":
-      return <StreamPanel title="Thoughts" lines={props.streams.thoughts || []} />;
+      return <StreamPanel title="Thoughts" lines={props.streams.thoughts || []} colorizeThoughts />;
     case "spells":
       return (
         <div className="active-spells-text">

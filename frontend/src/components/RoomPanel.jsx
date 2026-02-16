@@ -3,6 +3,9 @@ import React from "react";
 export default function RoomPanel({ room }) {
   return (
     <div className="room-panel">
+      {room.title && (
+        <div className="room-title">{room.title}</div>
+      )}
       {room.desc && (
         <div className="room-desc">{room.desc}</div>
       )}

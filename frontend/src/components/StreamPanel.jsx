@@ -1,6 +1,30 @@
 import React, { useRef, useEffect, useState } from "react";
 
-export default function StreamPanel({ title, lines }) {
+// LNet: [Channel]-Game:Player: "message"
+const LNET_RE = /^(\[[^\]]+\]-[^:]+:[^:]+:)\s*(.*)/;
+// ESP: [Channel][Player] "message"
+const ESP_RE = /^(\[[^\]]+\]\[[^\]]+\])\s*(.*)/;
+
+function ThoughtLine({ text }) {
+  let match;
+  if ((match = text.match(LNET_RE))) {
+    return (
+      <>
+        <span className="thought-lnet-prefix">{match[1]}</span> {match[2]}
+      </>
+    );
+  }
+  if ((match = text.match(ESP_RE))) {
+    return (
+      <>
+        <span className="thought-esp-prefix">{match[1]}</span> {match[2]}
+      </>
+    );
+  }
+  return text;
+}
+
+export default function StreamPanel({ title, lines, colorizeThoughts }) {
   const containerRef = useRef(null);
   const [autoScroll, setAutoScroll] = useState(true);
 
@@ -25,7 +49,7 @@ export default function StreamPanel({ title, lines }) {
         ) : (
           lines.map((line, i) => (
             <div key={i} className="stream-line">
-              {line.text}
+              {colorizeThoughts ? <ThoughtLine text={line.text} /> : line.text}
             </div>
           ))
         )}
