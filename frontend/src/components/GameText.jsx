@@ -36,7 +36,8 @@ export default function GameText({ lines, onClick }) {
                   && prev.text.length > 0
                   && seg.text.length > 0
                   && !/\s$/.test(prev.text)
-                  && !/^\s/.test(seg.text);
+                  && !/^\s/.test(seg.text)
+                  && !/^[,.!?;:'")\]]/.test(seg.text);
                 const classes = [
                   seg.style && `style-${seg.style}`,
                   seg.bold && "bold",
