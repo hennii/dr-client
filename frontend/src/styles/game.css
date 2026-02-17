@@ -625,16 +625,38 @@ html, body, #root {
   color: var(--text-subtle);
   padding: 4px 0;
 }
+.map-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 2px 4px;
+}
 .map-zone-title {
   font-size: var(--font-xs);
   color: var(--text-muted);
-  padding: 2px 0;
-  text-align: center;
+}
+.map-focus-btn {
+  background: var(--bg-hover);
+  color: var(--text-muted);
+  border: 1px solid var(--border);
+  border-radius: 3px;
+  padding: 0 5px;
+  font-size: var(--font-sm);
+  font-family: inherit;
+  cursor: pointer;
+  line-height: 1.4;
+}
+.map-focus-btn:hover {
+  background: var(--border);
+  color: var(--text-primary);
 }
 .map-svg {
   flex: 1;
   cursor: grab;
   min-height: 0;
+  user-select: none;
+  -webkit-user-select: none;
 }
 .map-svg:active {
   cursor: grabbing;
@@ -654,7 +676,7 @@ html, body, #root {
 }
 .map-cross-zone {
   fill: none;
-  stroke: #0af;
+  stroke: #01547e;
   stroke-width: 1;
 }
 .map-label {
