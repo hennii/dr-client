@@ -167,7 +167,12 @@ export default function MapPanel({ zone, currentNode, level }) {
 
   return (
     <div className="map-panel">
-      <div className="map-zone-title">{zone.name}</div>
+      <div className="map-toolbar">
+        <span className="map-zone-title">{zone.name}</span>
+        <button className="map-focus-btn" onClick={() => setPanOffset(null)} title="Center on current room">
+          &#8982;
+        </button>
+      </div>
       {zone.levels.length > 1 && (
         <div className="map-level-selector">
           {zone.levels.map((z) => (
@@ -230,7 +235,7 @@ export default function MapPanel({ zone, currentNode, level }) {
 
         {/* Labels (on top of rooms, offset down so text sits below the coordinate) */}
         {labels.map((l, i) => (
-          <text key={i} x={l.sx} y={l.sy + 12} className="map-label">
+          <text key={i} x={l.sx + 6} y={l.sy + 12} className="map-label">
             {l.text}
           </text>
         ))}
