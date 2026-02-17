@@ -1,4 +1,5 @@
 require "fileutils"
+require "json"
 
 class LogService
   STREAM_MAP = {
@@ -13,7 +14,8 @@ class LogService
   def initialize(base_dir, char_name)
     @base_dir = base_dir
     @char_name = char_name
-    @enabled = { "main" => true, "thoughts" => true }
+    @settings_path = File.join(@base_dir, "settings.json")
+    @enabled = load_settings
     @files = {}
     @file_dates = {}
     @main_buffer = ""
@@ -54,12 +56,25 @@ class LogService
     end
   end
 
+  def log_raw_command(text)
+    @mutex.synchronize do
+      return unless @enabled["raw"]
+      write_raw("raw", "<c>#{text}")
+    end
+  end
+
   def enable(stream)
-    @mutex.synchronize { @enabled[stream] = true }
+    @mutex.synchronize do
+      @enabled[stream] = true
+      save_settings
+    end
   end
 
   def disable(stream)
-    @mutex.synchronize { @enabled.delete(stream) }
+    @mutex.synchronize do
+      @enabled.delete(stream)
+      save_settings
+    end
   end
 
   def enabled?(stream)
@@ -99,6 +114,22 @@ class LogService
     file = file_for(stream)
     file.puts(text)
     file.flush
+  end
+
+  def load_settings
+    return { "main" => true, "thoughts" => true } unless File.exist?(@settings_path)
+    data = JSON.parse(File.read(@settings_path))
+    streams = data["enabled_streams"] || []
+    streams.each_with_object({}) { |s, h| h[s] = true }
+  rescue
+    { "main" => true, "thoughts" => true }
+  end
+
+  def save_settings
+    FileUtils.mkdir_p(@base_dir)
+    File.write(@settings_path, JSON.pretty_generate({ enabled_streams: @enabled.keys }))
+  rescue => e
+    puts "[log_service] Failed to save settings: #{e.message}"
   end
 
   def file_for(stream)

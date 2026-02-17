@@ -61,6 +61,7 @@ class GameApp < Sinatra::Base
         if data["text"]
           puts "[ws] Command: #{data['text']}"
           @@log_service&.log_command(data["text"])
+          @@log_service&.log_raw_command(data["text"])
           @@game_connection&.send_command(data["text"])
         end
       when "log_toggle"
@@ -72,7 +73,7 @@ class GameApp < Sinatra::Base
             @@log_service&.disable(stream)
           end
           # Broadcast updated log status to all clients
-          broadcast_log_status
+          GameApp.broadcast_log_status
         end
       when "log_status"
         ws.send({ type: "log_status", streams: @@log_service&.enabled_streams || [] }.to_json)
@@ -160,6 +161,7 @@ class GameApp < Sinatra::Base
       @@log_service.log_event(event)
       broadcast(event)
     end
+    parser.on_raw_line = ->(line) { @@log_service.log_raw(line) }
 
     # Step 4: Connect to Lich
     puts "\n=== Connecting to game via Lich ==="

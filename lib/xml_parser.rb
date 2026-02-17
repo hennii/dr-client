@@ -1,10 +1,11 @@
 require "nokogiri"
 
 class XmlParser
-  attr_accessor :on_event
+  attr_accessor :on_event, :on_raw_line
 
   def initialize
     @on_event = nil
+    @on_raw_line = nil
     @in_push_stream = nil
     @push_buffer = []
     @text_buffer = ""
@@ -16,6 +17,8 @@ class XmlParser
   end
 
   def feed(line)
+    @on_raw_line&.call(line)
+
     # Preprocess: fix unescaped ampersands
     line = line.gsub(/&(?!#?[a-z0-9]+;)/i, "&amp;")
 
