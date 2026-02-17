@@ -13,6 +13,7 @@ require_relative "lib/game_connection"
 require_relative "lib/xml_parser"
 require_relative "lib/game_state"
 require_relative "lib/script_api"
+require_relative "lib/log_service"
 
 Faye::WebSocket.load_adapter("thin")
 
@@ -30,6 +31,7 @@ class GameApp < Sinatra::Base
   @@game_connection = nil
   @@game_state = GameState.new
   @@script_api = nil
+  @@log_service = nil
   @@event_batch = []
   @@batch_mutex = Mutex.new
   @@flush_scheduled = false
@@ -52,9 +54,28 @@ class GameApp < Sinatra::Base
 
     ws.on :message do |event|
       data = JSON.parse(event.data) rescue nil
-      if data && data["type"] == "command" && data["text"]
-        puts "[ws] Command: #{data['text']}"
-        @@game_connection&.send_command(data["text"])
+      next unless data
+
+      case data["type"]
+      when "command"
+        if data["text"]
+          puts "[ws] Command: #{data['text']}"
+          @@log_service&.log_command(data["text"])
+          @@game_connection&.send_command(data["text"])
+        end
+      when "log_toggle"
+        stream = data["stream"]
+        if stream && LogService::KNOWN_STREAMS.include?(stream)
+          if data["enabled"]
+            @@log_service&.enable(stream)
+          else
+            @@log_service&.disable(stream)
+          end
+          # Broadcast updated log status to all clients
+          broadcast_log_status
+        end
+      when "log_status"
+        ws.send({ type: "log_status", streams: @@log_service&.enabled_streams || [] }.to_json)
       end
     end
 
@@ -75,6 +96,10 @@ class GameApp < Sinatra::Base
         EventMachine.next_tick { flush_batch }
       end
     end
+  end
+
+  def self.broadcast_log_status
+    broadcast(type: "log_status", streams: @@log_service&.enabled_streams || [])
   end
 
   def self.flush_batch
@@ -125,10 +150,14 @@ class GameApp < Sinatra::Base
       game_code: game_code,
     )
 
-    # Step 3: Set up XML parser
+    # Step 3: Set up logging and XML parser
+    log_dir = File.join(__dir__, "logs")
+    @@log_service = LogService.new(log_dir, character)
+
     parser = XmlParser.new
     parser.on_event = ->(event) do
       @@game_state.update(event)
+      @@log_service.log_event(event)
       broadcast(event)
     end
 
@@ -155,6 +184,7 @@ class GameApp < Sinatra::Base
     # Step 6: Cleanup on shutdown
     at_exit do
       puts "\n=== Shutting down ==="
+      @@log_service&.close
       @@script_api&.stop
       @@game_connection&.close
       LichLauncher.shutdown

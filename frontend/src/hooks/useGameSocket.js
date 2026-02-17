@@ -20,6 +20,7 @@ const initialState = {
   casttime: null,
   charName: null,
   mono: false,
+  logStreams: [],
 };
 
 function appendLines(existing, newLine, max) {
@@ -249,6 +250,8 @@ function reducer(state, action) {
       }
       return { ...state, scriptWindows: sw };
     }
+    case "log_status":
+      return { ...state, logStreams: action.streams || [] };
     case "batch":
       return action.events.reduce(reducer, state);
     default:
@@ -314,6 +317,7 @@ export function useGameSocket() {
         console.log("[ws] Connected");
         retryDelay = 2000;
         dispatch({ type: "connected" });
+        ws.send(JSON.stringify({ type: "log_status" }));
       };
 
       ws.onmessage = (event) => {
@@ -366,6 +370,12 @@ export function useGameSocket() {
     }
   }, []);
 
+  const sendMessage = useCallback((msg) => {
+    if (wsRef.current?.readyState === WebSocket.OPEN) {
+      wsRef.current.send(JSON.stringify(msg));
+    }
+  }, []);
+
   return {
     gameLines: state.gameLines,
     vitals: state.vitals,
@@ -382,6 +392,8 @@ export function useGameSocket() {
     roundtime: state.roundtime,
     casttime: state.casttime,
     charName: state.charName,
+    logStreams: state.logStreams,
     send,
+    sendMessage,
   };
 }

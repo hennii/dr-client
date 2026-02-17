@@ -613,6 +613,51 @@ html, body, #root {
   word-wrap: break-word;
 }
 
+/* Log toggle */
+.log-toggle {
+  position: relative;
+  margin-left: auto;
+}
+.log-toggle-btn {
+  background: var(--bg-hover);
+  color: var(--text-muted);
+  border: 1px solid var(--border);
+  border-radius: 3px;
+  padding: 2px 8px;
+  font-size: var(--font-xs);
+  font-family: inherit;
+  cursor: pointer;
+}
+.log-toggle-btn:hover {
+  background: var(--border);
+  color: var(--text-primary);
+}
+.log-toggle-menu {
+  position: absolute;
+  bottom: 100%;
+  right: 0;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 6px 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  z-index: 100;
+  white-space: nowrap;
+}
+.log-toggle-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--text-secondary);
+  font-size: var(--font-xs);
+  cursor: pointer;
+}
+.log-toggle-item input {
+  cursor: pointer;
+}
+
 /* ===== Scrollbar styling ===== */
 .game-text::-webkit-scrollbar,
 .left-sidebar::-webkit-scrollbar,

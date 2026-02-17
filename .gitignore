@@ -9,5 +9,8 @@ frontend/dist/
 # Environment
 .env
 
+# Logs
+logs/
+
 # OS
 .DS_Store

@@ -29,7 +29,8 @@ function saveLayout(updates) {
 export default function App() {
   const {
     gameLines, vitals, room, compass, hands, spell, indicators,
-    connected, exp, activeSpells, streams, scriptWindows, roundtime, casttime, send,
+    connected, exp, activeSpells, streams, scriptWindows, roundtime, casttime,
+    logStreams, send, sendMessage,
   } = useGameSocket();
 
   const inputRef = useRef(null);
@@ -122,6 +123,8 @@ export default function App() {
         hands={hands}
         spell={spell}
         indicators={indicators}
+        logStreams={logStreams}
+        sendMessage={sendMessage}
       />
       <CommandInput onSend={send} roundtime={roundtime} casttime={casttime} inputRef={inputRef} />
       <div className="sidebar-divider" onMouseDown={onDividerMouseDown} />
