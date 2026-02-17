@@ -123,10 +123,12 @@ export default function App() {
         hands={hands}
         spell={spell}
         indicators={indicators}
+        roundtime={roundtime}
+        casttime={casttime}
         logStreams={logStreams}
         sendMessage={sendMessage}
       />
-      <CommandInput onSend={send} roundtime={roundtime} casttime={casttime} inputRef={inputRef} />
+      <CommandInput onSend={send} inputRef={inputRef} />
       <div className="sidebar-divider" onMouseDown={onDividerMouseDown} />
       <Sidebar
         room={room}

@@ -1,42 +1,6 @@
 import React, { useState, useRef, useCallback, useEffect } from "react";
 
-function RoundtimeBar({ roundtime, casttime }) {
-  const [now, setNow] = useState(() => Date.now() / 1000);
-
-  useEffect(() => {
-    if (!roundtime && !casttime) return;
-    const id = setInterval(() => setNow(Date.now() / 1000), 100);
-    return () => clearInterval(id);
-  }, [roundtime, casttime]);
-
-  const rtRemaining = roundtime ? Math.max(0, roundtime - now) : 0;
-  const ctRemaining = casttime ? Math.max(0, casttime - now) : 0;
-
-  if (rtRemaining <= 0 && ctRemaining <= 0) return null;
-
-  const maxDuration = 30;
-  const rtPct = Math.min((rtRemaining / maxDuration) * 100, 100);
-  const ctPct = Math.min((ctRemaining / maxDuration) * 100, 100);
-
-  return (
-    <div className="rt-bar-container">
-      {rtRemaining > 0 && (
-        <div className="rt-bar">
-          <div className="rt-fill rt-roundtime" style={{ width: `${rtPct}%` }} />
-          <span className="rt-label">{Math.ceil(rtRemaining)}s RT</span>
-        </div>
-      )}
-      {ctRemaining > 0 && (
-        <div className="rt-bar">
-          <div className="rt-fill rt-casttime" style={{ width: `${ctPct}%` }} />
-          <span className="rt-label">{Math.ceil(ctRemaining)}s CT</span>
-        </div>
-      )}
-    </div>
-  );
-}
-
-export default function CommandInput({ onSend, roundtime, casttime, inputRef: externalRef }) {
+export default function CommandInput({ onSend, inputRef: externalRef }) {
   const [value, setValue] = useState("");
   const [history, setHistory] = useState([]);
   const [historyIndex, setHistoryIndex] = useState(-1);
@@ -83,7 +47,6 @@ export default function CommandInput({ onSend, roundtime, casttime, inputRef: ex
 
   return (
     <div className="command-area">
-      <RoundtimeBar roundtime={roundtime} casttime={casttime} />
       <div className="command-input">
         <span className="prompt-char">&gt;</span>
         <input

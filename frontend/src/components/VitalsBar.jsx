@@ -1,11 +1,11 @@
 import React from "react";
 
 const VITAL_CONFIG = [
-  { id: "health", label: "H", color: null },
-  { id: "mana", label: "M", color: "#4488cc" },
-  { id: "concentration", label: "C", color: "#66aacc" },
-  { id: "stamina", label: "F", color: "#ccaa44" },
-  { id: "spirit", label: "S", color: "#aa77bb" },
+  { id: "health", label: "Health", color: null },
+  { id: "mana", label: "Mana", color: "#4488cc" },
+  { id: "concentration", label: "Conc.", color: "#66aacc" },
+  { id: "stamina", label: "Fatigue", color: "#ccaa44" },
+  { id: "spirit", label: "Spirit", color: "#aa77bb" },
 ];
 
 function healthColor(value) {
