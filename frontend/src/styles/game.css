@@ -210,6 +210,10 @@ html, body, #root {
   min-height: 1em;
   margin-bottom: 1em;
   max-width: 70em;
+
+  &:has(.mono) {
+    margin-bottom: 0;
+  }
 }
 
 /* Style classes */
