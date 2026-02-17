@@ -85,6 +85,30 @@ class LogService
     @mutex.synchronize { @enabled.keys }
   end
 
+  def read_recent(stream, hours: 24)
+    cutoff = Time.now - (hours * 3600)
+    today = Date.today
+    yesterday = today - 1
+    lines = []
+
+    [yesterday, today].each do |date|
+      path = File.join(@base_dir, "#{stream}-#{@char_name}-#{date}.log")
+      next unless File.exist?(path)
+
+      File.foreach(path) do |line|
+        line.chomp!
+        next if line.empty?
+        if line =~ /^\[(\d{2}):(\d{2})\] (.*)$/
+          h, m, text = $1.to_i, $2.to_i, $3
+          line_time = Time.new(date.year, date.month, date.day, h, m)
+          lines << { text: text, ts: line_time.to_i * 1000 } if line_time >= cutoff
+        end
+      end
+    end
+
+    lines
+  end
+
   def close
     @mutex.synchronize do
       @files.each_value { |f| f.close rescue nil }

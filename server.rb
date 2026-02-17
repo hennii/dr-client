@@ -50,6 +50,13 @@ class GameApp < Sinatra::Base
       @@ws_mutex.synchronize { @@ws_clients << ws }
       # Send current state snapshot
       ws.send({ type: "snapshot", state: @@game_state.snapshot }.to_json)
+      # Send recent thoughts history from logs
+      if @@log_service
+        thoughts_history = @@log_service.read_recent("thoughts", hours: 24)
+        unless thoughts_history.empty?
+          ws.send({ type: "stream_history", id: "thoughts", lines: thoughts_history }.to_json)
+        end
+      end
     end
 
     ws.on :message do |event|

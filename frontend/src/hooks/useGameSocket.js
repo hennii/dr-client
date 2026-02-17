@@ -250,6 +250,19 @@ function reducer(state, action) {
       }
       return { ...state, scriptWindows: sw };
     }
+    case "stream_history": {
+      const historyLines = (action.lines || []).map((l) => ({
+        text: l.text,
+        ts: l.ts,
+      }));
+      if (historyLines.length === 0) return state;
+      const existing = state.streams[action.id] || [];
+      const merged = [...historyLines, ...existing].slice(-MAX_STREAM_LINES);
+      return {
+        ...state,
+        streams: { ...state.streams, [action.id]: merged },
+      };
+    }
     case "log_status":
       return { ...state, logStreams: action.streams || [] };
     case "batch":
