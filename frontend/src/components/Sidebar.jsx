@@ -20,12 +20,13 @@ import Compass from "./Compass";
 
 const LAYOUT_KEY = "dr-client-layout";
 
-const DEFAULT_PANEL_ORDER = ["room", "compass", "spells"];
-const DEFAULT_COLLAPSED = ["spells"];
+const DEFAULT_PANEL_ORDER = ["room", "compass", "spells", "arrivals"];
+const DEFAULT_COLLAPSED = ["spells", "arrivals"];
 const DEFAULT_PANEL_SIZES = {
   exp: 300,
   thoughts: 200,
   spells: 200,
+  arrivals: 200,
 };
 
 function loadLayout() {
@@ -127,6 +128,8 @@ function renderPanelContent(id, props) {
       return <ExpTracker exp={props.exp} />;
     case "thoughts":
       return <StreamPanel title="Thoughts" lines={props.streams.thoughts || []} colorizeThoughts />;
+    case "arrivals":
+      return <StreamPanel title="Arrivals" lines={props.streams.logons || []} />;
     case "spells":
       return (
         <div className="active-spells-text">
@@ -150,6 +153,7 @@ function getPanelTitle(id, scriptWindows) {
     case "compass": return "Compass";
     case "exp": return "Experience";
     case "thoughts": return "Thoughts";
+    case "arrivals": return "Arrivals";
     case "spells": return "Active Spells";
     default:
       if (id.startsWith("script:")) {

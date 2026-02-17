@@ -5,7 +5,7 @@ class LogService
   STREAM_MAP = {
     "thoughts" => "thoughts",
     "combat" => "combat",
-    "arrivals" => "arrivals",
+    "logons" => "arrivals",
     "death" => "deaths",
   }
 

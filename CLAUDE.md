@@ -71,7 +71,7 @@ TCP server, line-based protocol. Request: `COMMAND NAME?arg1&arg2\n`, Response: 
 
 - **kor-scripts** (`~/dragonrealms/kor-scripts`) — Lich5 Ruby scripts for DR automation. 8 scripts use `KorFrostbiteClient` module which connects to the ScriptApiServer.
 - **Frostbite** (`~/development/frostbite-qt6`) — The Qt6 client being replaced. Primary reference for protocol implementation.
-- **Lich5** (`~/dragonrealms/lich`) — Ruby scripting engine that proxies between client and game server.
+- **Lich5** (`~/dragonrealms/lich5`) — Ruby scripting engine that proxies between client and game server.
 
 ## Development
 
