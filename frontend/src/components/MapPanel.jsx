@@ -2,7 +2,8 @@ import React, { useMemo, useState, useRef, useEffect, useCallback } from "react"
 
 export default function MapPanel({ zone, currentNode, level }) {
   const svgRef = useRef(null);
-  const [viewBox, setViewBox] = useState(null);
+  const [zoom, setZoom] = useState(null);       // { w, h } — zoom dimensions only
+  const [panOffset, setPanOffset] = useState(null); // { dx, dy } — manual pan offset from center
   const [dragging, setDragging] = useState(false);
   const dragStart = useRef(null);
   const [selectedLevel, setSelectedLevel] = useState(level);
@@ -75,52 +76,53 @@ export default function MapPanel({ zone, currentNode, level }) {
     };
   }, [zone, selectedLevel]);
 
-  // Auto-center on current node
-  useEffect(() => {
-    if (!zone || !bounds) return;
-    const node = nodes.find((n) => n.id === currentNode);
-    if (!node) return;
+  // Reset pan offset when current node changes (re-center on player)
+  const prevNode = useRef(currentNode);
+  if (currentNode !== prevNode.current) {
+    prevNode.current = currentNode;
+    setPanOffset(null);
+  }
 
-    setViewBox((prev) => {
-      // Preserve current zoom level if we already have a viewBox
-      if (prev) {
-        return {
-          x: node.sx - prev.w / 2,
-          y: node.sy - prev.h / 2,
-          w: prev.w,
-          h: prev.h,
-        };
-      }
-      // Initial view size
-      const svgEl = svgRef.current;
-      if (!svgEl) return prev;
-      const rect = svgEl.getBoundingClientRect();
-      const aspect = rect.width / rect.height;
-      const viewH = Math.min(bounds.h, 300);
-      const viewW = viewH * aspect;
-      return {
-        x: node.sx - viewW / 2,
-        y: node.sy - viewH / 2,
-        w: viewW,
-        h: viewH,
-      };
-    });
-  }, [currentNode, zone, bounds, nodes]);
+  // Initialize zoom on first render only; preserve across zone changes
+  useEffect(() => {
+    if (zoom || !bounds) return;
+    const svgEl = svgRef.current;
+    if (!svgEl) return;
+    const rect = svgEl.getBoundingClientRect();
+    const aspect = rect.width / rect.height;
+    const viewH = Math.min(bounds.h, 300);
+    const viewW = viewH * aspect;
+    setZoom({ w: viewW, h: viewH });
+  }, [zone, bounds, zoom]);
+
+  // Compute viewBox synchronously during render — no flash
+  const currentNodeData = nodes.find((n) => n.id === currentNode);
+  const vb = useMemo(() => {
+    if (!bounds) return { x: 0, y: 0, w: 100, h: 100 };
+    if (!zoom) return { x: 0, y: 0, w: bounds.w, h: bounds.h };
+
+    const cx = currentNodeData ? currentNodeData.sx : bounds.w / 2;
+    const cy = currentNodeData ? currentNodeData.sy : bounds.h / 2;
+    const dx = panOffset ? panOffset.dx : 0;
+    const dy = panOffset ? panOffset.dy : 0;
+
+    return {
+      x: cx - zoom.w / 2 + dx,
+      y: cy - zoom.h / 2 + dy,
+      w: zoom.w,
+      h: zoom.h,
+    };
+  }, [bounds, zoom, currentNodeData, panOffset]);
 
   // Zoom handler
   const handleWheel = useCallback((e) => {
     e.preventDefault();
-    setViewBox((vb) => {
-      if (!vb) return vb;
+    setZoom((z) => {
+      if (!z || !bounds) return z;
       const factor = e.deltaY > 0 ? 1.15 : 0.87;
-      const newW = Math.max(50, Math.min(vb.w * factor, bounds.w * 2));
-      const newH = Math.max(50, Math.min(vb.h * factor, bounds.h * 2));
-      // Zoom toward center
       return {
-        x: vb.x + (vb.w - newW) / 2,
-        y: vb.y + (vb.h - newH) / 2,
-        w: newW,
-        h: newH,
+        w: Math.max(50, Math.min(z.w * factor, bounds.w * 2)),
+        h: Math.max(50, Math.min(z.h * factor, bounds.h * 2)),
       };
     });
   }, [bounds]);
@@ -129,27 +131,22 @@ export default function MapPanel({ zone, currentNode, level }) {
   const handleMouseDown = useCallback((e) => {
     if (e.button !== 0) return;
     setDragging(true);
-    dragStart.current = { x: e.clientX, y: e.clientY, vb: viewBox };
-  }, [viewBox]);
+    dragStart.current = { x: e.clientX, y: e.clientY, pan: panOffset };
+  }, [panOffset]);
 
   const handleMouseMove = useCallback((e) => {
-    if (!dragging || !dragStart.current) return;
+    if (!dragging || !dragStart.current || !zoom) return;
     const svgEl = svgRef.current;
     if (!svgEl) return;
     const rect = svgEl.getBoundingClientRect();
-    const vb = dragStart.current.vb;
-    if (!vb) return;
-    const scaleX = vb.w / rect.width;
-    const scaleY = vb.h / rect.height;
-    const dx = (dragStart.current.x - e.clientX) * scaleX;
-    const dy = (dragStart.current.y - e.clientY) * scaleY;
-    setViewBox({
-      x: vb.x + dx,
-      y: vb.y + dy,
-      w: vb.w,
-      h: vb.h,
+    const scaleX = zoom.w / rect.width;
+    const scaleY = zoom.h / rect.height;
+    const prevPan = dragStart.current.pan || { dx: 0, dy: 0 };
+    setPanOffset({
+      dx: prevPan.dx + (dragStart.current.x - e.clientX) * scaleX,
+      dy: prevPan.dy + (dragStart.current.y - e.clientY) * scaleY,
     });
-  }, [dragging]);
+  }, [dragging, zoom]);
 
   const handleMouseUp = useCallback(() => {
     setDragging(false);
@@ -167,8 +164,6 @@ export default function MapPanel({ zone, currentNode, level }) {
   if (!zone) {
     return <div className="map-panel-empty">No map data</div>;
   }
-
-  const vb = viewBox || { x: 0, y: 0, w: bounds.w, h: bounds.h };
 
   return (
     <div className="map-panel">
@@ -241,17 +236,14 @@ export default function MapPanel({ zone, currentNode, level }) {
         ))}
 
         {/* Current room marker */}
-        {nodes.find((n) => n.id === currentNode) && (() => {
-          const cn = nodes.find((n) => n.id === currentNode);
-          return (
-            <circle
-              cx={cn.sx + 2}
-              cy={cn.sy + 2}
-              r={6}
-              className="map-current"
-            />
-          );
-        })()}
+        {currentNodeData && (
+          <circle
+            cx={currentNodeData.sx + 2}
+            cy={currentNodeData.sy + 2}
+            r={6}
+            className="map-current"
+          />
+        )}
       </svg>
     </div>
   );
