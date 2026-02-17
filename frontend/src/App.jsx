@@ -30,7 +30,7 @@ export default function App() {
   const {
     gameLines, vitals, room, compass, hands, spell, indicators,
     connected, exp, activeSpells, streams, scriptWindows, roundtime, casttime,
-    logStreams, send, sendMessage,
+    logStreams, mapZone, mapCurrentNode, mapLevel, send, sendMessage,
   } = useGameSocket();
 
   const inputRef = useRef(null);
@@ -136,6 +136,9 @@ export default function App() {
         compass={compass}
         scriptWindows={scriptWindows}
         onMove={send}
+        mapZone={mapZone}
+        mapCurrentNode={mapCurrentNode}
+        mapLevel={mapLevel}
       />
     </div>
   );

@@ -17,16 +17,18 @@ import RoomPanel from "./RoomPanel";
 import ExpTracker from "./ExpTracker";
 import StreamPanel from "./StreamPanel";
 import Compass from "./Compass";
+import MapPanel from "./MapPanel";
 
 const LAYOUT_KEY = "dr-client-layout";
 
-const DEFAULT_PANEL_ORDER = ["room", "compass", "spells", "arrivals"];
+const DEFAULT_PANEL_ORDER = ["room", "compass", "map", "spells", "arrivals"];
 const DEFAULT_COLLAPSED = ["spells", "arrivals"];
 const DEFAULT_PANEL_SIZES = {
   exp: 300,
   thoughts: 200,
   spells: 200,
   arrivals: 200,
+  map: 300,
 };
 
 function loadLayout() {
@@ -124,6 +126,8 @@ function renderPanelContent(id, props) {
       return <RoomPanel room={props.room} />;
     case "compass":
       return <Compass compass={props.compass} onMove={props.onMove} />;
+    case "map":
+      return <MapPanel zone={props.mapZone} currentNode={props.mapCurrentNode} level={props.mapLevel} />;
     case "exp":
       return <ExpTracker exp={props.exp} />;
     case "thoughts":
@@ -151,6 +155,7 @@ function getPanelTitle(id, scriptWindows) {
   switch (id) {
     case "room": return "Room";
     case "compass": return "Compass";
+    case "map": return "Map";
     case "exp": return "Experience";
     case "thoughts": return "Thoughts";
     case "arrivals": return "Arrivals";
@@ -265,10 +270,19 @@ export function LeftSidebar({ exp, streams }) {
   );
 }
 
-export default function Sidebar({ room, exp, streams, activeSpells, compass, scriptWindows, onMove }) {
+export default function Sidebar({ room, exp, streams, activeSpells, compass, scriptWindows, onMove, mapZone, mapCurrentNode, mapLevel }) {
   const [panelOrder, setPanelOrder] = useState(() => {
     const layout = loadLayout();
-    return layout.panelOrder || DEFAULT_PANEL_ORDER;
+    if (!layout.panelOrder) return DEFAULT_PANEL_ORDER;
+    // Ensure new built-in panels are present in saved order
+    const saved = [...layout.panelOrder];
+    for (const id of DEFAULT_PANEL_ORDER) {
+      if (!saved.includes(id)) {
+        const idx = DEFAULT_PANEL_ORDER.indexOf(id);
+        saved.splice(idx, 0, id);
+      }
+    }
+    return saved;
   });
 
   const [collapsedPanels, setCollapsedPanels] = useState(() => {
@@ -347,7 +361,7 @@ export default function Sidebar({ room, exp, streams, activeSpells, compass, scr
     document.addEventListener("mouseup", onMouseUp);
   }, [panelSizes]);
 
-  const contentProps = { room, exp, streams, activeSpells, compass, scriptWindows, onMove };
+  const contentProps = { room, exp, streams, activeSpells, compass, scriptWindows, onMove, mapZone, mapCurrentNode, mapLevel };
 
   return (
     <div className="sidebar">

@@ -12,5 +12,8 @@ frontend/dist/
 # Logs
 logs/
 
+# Maps
+maps/
+
 # OS
 .DS_Store

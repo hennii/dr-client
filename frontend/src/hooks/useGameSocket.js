@@ -21,6 +21,9 @@ const initialState = {
   charName: null,
   mono: false,
   logStreams: [],
+  mapZone: null,
+  mapCurrentNode: null,
+  mapLevel: 0,
 };
 
 function appendLines(existing, newLine, max) {
@@ -265,6 +268,19 @@ function reducer(state, action) {
     }
     case "log_status":
       return { ...state, logStreams: action.streams || [] };
+    case "map_zone":
+      return {
+        ...state,
+        mapZone: action.zone,
+        mapCurrentNode: action.current_node,
+        mapLevel: action.level,
+      };
+    case "map_update":
+      return {
+        ...state,
+        mapCurrentNode: action.current_node,
+        mapLevel: action.level,
+      };
     case "batch":
       return action.events.reduce(reducer, state);
     default:
@@ -406,6 +422,9 @@ export function useGameSocket() {
     casttime: state.casttime,
     charName: state.charName,
     logStreams: state.logStreams,
+    mapZone: state.mapZone,
+    mapCurrentNode: state.mapCurrentNode,
+    mapLevel: state.mapLevel,
     send,
     sendMessage,
   };

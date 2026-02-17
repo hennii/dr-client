@@ -613,6 +613,83 @@ html, body, #root {
   word-wrap: break-word;
 }
 
+/* Map panel */
+.map-panel {
+  overflow: hidden;
+  background: var(--bg-primary);
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+.map-panel-empty {
+  color: var(--text-subtle);
+  padding: 4px 0;
+}
+.map-zone-title {
+  font-size: var(--font-xs);
+  color: var(--text-muted);
+  padding: 2px 0;
+  text-align: center;
+}
+.map-svg {
+  flex: 1;
+  cursor: grab;
+  min-height: 0;
+}
+.map-svg:active {
+  cursor: grabbing;
+}
+.map-arc {
+  stroke: #666;
+  stroke-width: 1;
+}
+.map-room {
+  stroke: #666;
+  stroke-width: 0.5;
+}
+.map-current {
+  fill: none;
+  stroke: red;
+  stroke-width: 1.5;
+}
+.map-cross-zone {
+  fill: none;
+  stroke: #0af;
+  stroke-width: 1;
+}
+.map-label {
+  font-size: 7px;
+  fill: var(--text-secondary);
+  pointer-events: none;
+  paint-order: stroke;
+  stroke: var(--bg-primary);
+  stroke-width: 2px;
+}
+.map-level-selector {
+  display: flex;
+  gap: 2px;
+  justify-content: center;
+  padding: 2px 0;
+}
+.map-level-btn {
+  background: var(--bg-hover);
+  color: var(--text-muted);
+  border: 1px solid var(--border);
+  border-radius: 3px;
+  padding: 1px 6px;
+  font-size: var(--font-xxs);
+  font-family: inherit;
+  cursor: pointer;
+}
+.map-level-btn.active {
+  background: var(--color-compass-active-bg);
+  color: var(--color-compass-active);
+  border-color: var(--color-compass-active);
+}
+.map-level-btn:hover {
+  background: var(--border);
+}
+
 /* Log toggle */
 .log-toggle {
   position: relative;

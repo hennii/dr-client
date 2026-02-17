@@ -14,6 +14,7 @@ require_relative "lib/xml_parser"
 require_relative "lib/game_state"
 require_relative "lib/script_api"
 require_relative "lib/log_service"
+require_relative "lib/map_service"
 
 Faye::WebSocket.load_adapter("thin")
 
@@ -32,6 +33,7 @@ class GameApp < Sinatra::Base
   @@game_state = GameState.new
   @@script_api = nil
   @@log_service = nil
+  @@map_service = nil
   @@event_batch = []
   @@batch_mutex = Mutex.new
   @@flush_scheduled = false
@@ -57,6 +59,9 @@ class GameApp < Sinatra::Base
           ws.send({ type: "stream_history", id: "thoughts", lines: thoughts_history }.to_json)
         end
       end
+      # Send current map state
+      map_state = @@map_service&.current_map_state
+      ws.send(map_state.to_json) if map_state
     end
 
     ws.on :message do |event|
@@ -158,15 +163,23 @@ class GameApp < Sinatra::Base
       game_code: game_code,
     )
 
-    # Step 3: Set up logging and XML parser
+    # Step 3: Set up logging, maps, and XML parser
     log_dir = File.join(__dir__, "logs")
     @@log_service = LogService.new(log_dir, character)
+
+    maps_dir = File.join(__dir__, "maps")
+    @@map_service = MapService.new(maps_dir)
 
     parser = XmlParser.new
     parser.on_event = ->(event) do
       @@game_state.update(event)
       @@log_service.log_event(event)
       broadcast(event)
+
+      if event[:type] == "compass"
+        map_event = @@map_service.update(@@game_state.snapshot)
+        broadcast(map_event) if map_event
+      end
     end
     parser.on_raw_line = ->(line) { @@log_service.log_raw(line) }
 
