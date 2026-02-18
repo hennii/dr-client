@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, memo } from "react";
 import HandsDisplay from "./HandsDisplay";
 import SpellDisplay from "./SpellDisplay";
 import StatusIndicators from "./StatusIndicators";
@@ -104,7 +104,7 @@ function MiniCompass({ compass, onMove }) {
   );
 }
 
-export default function Toolbar({ vitals, hands, spell, indicators, roundtime, casttime, compass, onMove, logStreams, sendMessage }) {
+const Toolbar = memo(function Toolbar({ vitals, hands, spell, indicators, roundtime, casttime, compass, onMove, logStreams, sendMessage }) {
   return (
     <div className="toolbar">
       <div className="toolbar-row">
@@ -120,4 +120,6 @@ export default function Toolbar({ vitals, hands, spell, indicators, roundtime, c
       </div>
     </div>
   );
-}
+});
+
+export default Toolbar;

@@ -2,6 +2,7 @@ import { useReducer, useEffect, useRef, useCallback } from "react";
 
 const MAX_LINES = 2000;
 const MAX_STREAM_LINES = 200;
+const MAX_SCRIPT_LINES = 500;
 
 const initialState = {
   gameLines: [],
@@ -246,10 +247,11 @@ function reducer(state, action) {
           break;
         case "write":
           if (sw[action.name]) {
-            sw[action.name] = {
-              ...sw[action.name],
-              lines: [...sw[action.name].lines, action.text],
-            };
+            const prev = sw[action.name].lines;
+            const next = prev.length >= MAX_SCRIPT_LINES
+              ? [...prev.slice(-(MAX_SCRIPT_LINES - 1)), action.text]
+              : [...prev, action.text];
+            sw[action.name] = { ...sw[action.name], lines: next };
           }
           break;
         case "clear":

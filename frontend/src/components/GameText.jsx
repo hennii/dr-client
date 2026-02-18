@@ -1,6 +1,6 @@
-import React, { useRef, useLayoutEffect, useCallback } from "react";
+import React, { useRef, useLayoutEffect, useCallback, memo } from "react";
 
-export default function GameText({ lines, onClick }) {
+const GameText = memo(function GameText({ lines, onClick }) {
   const containerRef = useRef(null);
   const autoScroll = useRef(true);
   const programmaticScroll = useRef(false);
@@ -71,4 +71,6 @@ export default function GameText({ lines, onClick }) {
       })}
     </div>
   );
-}
+});
+
+export default GameText;

@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useRef, useEffect } from "react";
+import React, { useState, useCallback, useRef, useEffect, memo } from "react";
 import {
   DndContext,
   closestCenter,
@@ -177,7 +177,7 @@ const LEFT_DEFAULT_PANEL_SIZES = {
   thoughts: 200,
 };
 
-export function LeftSidebar({ exp, streams }) {
+export const LeftSidebar = memo(function LeftSidebar({ exp, streams }) {
   const [panelOrder, setPanelOrder] = useState(() => {
     const layout = loadLayout();
     return layout.leftPanelOrder || LEFT_DEFAULT_PANEL_ORDER;
@@ -268,9 +268,9 @@ export function LeftSidebar({ exp, streams }) {
       </DndContext>
     </div>
   );
-}
+});
 
-export default function Sidebar({ room, exp, streams, activeSpells, compass, scriptWindows, onMove, mapZone, mapCurrentNode, mapLevel }) {
+const Sidebar = memo(function Sidebar({ room, exp, streams, activeSpells, compass, scriptWindows, onMove, mapZone, mapCurrentNode, mapLevel }) {
   const [panelOrder, setPanelOrder] = useState(() => {
     const layout = loadLayout();
     if (!layout.panelOrder) return DEFAULT_PANEL_ORDER;
@@ -384,4 +384,6 @@ export default function Sidebar({ room, exp, streams, activeSpells, compass, scr
       </DndContext>
     </div>
   );
-}
+});
+
+export default Sidebar;
