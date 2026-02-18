@@ -86,7 +86,8 @@ class XmlParser
       flush_push_stream
 
     when "prompt"
-      flush_text(prompt: true)
+      flush_text
+      emit(type: "prompt_spacer")
       time = node["time"]&.to_i
       emit(type: "prompt", time: time)
 
@@ -254,7 +255,10 @@ class XmlParser
       emit(type: "exp", skill: skill, text: text)
     elsif id =~ /^room (desc|objs|players|exits)$/i
       field = $1.downcase
-      emit(type: "room", field: field, value: node.inner_html.strip)
+      html = node.inner_html.strip
+        .gsub(/<pushbold\s*\/?>/i, "<b>")
+        .gsub(/<popbold\s*\/?>/i, "</b>")
+      emit(type: "room", field: field, value: html)
     else
       emit(type: "component", id: id, value: node.text.strip)
     end

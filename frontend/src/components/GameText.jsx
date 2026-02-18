@@ -24,8 +24,14 @@ export default function GameText({ lines, onClick }) {
   }, []);
 
   return (
-    <div className="game-text" ref={containerRef} onScroll={handleScroll} onClick={onClick}>
+    <div className="game-text" ref={containerRef} onScroll={handleScroll} onMouseUp={() => {
+      const sel = window.getSelection();
+      if (!sel || sel.isCollapsed) onClick?.();
+    }}>
       {lines.map((line, i) => {
+        if (line.prompt) {
+          return <div key={i} className="game-line game-line-prompt">{"\u00A0"}</div>;
+        }
         if (line.segments) {
           return (
             <div key={i} className={`game-line${line.streamId ? ` stream-${line.streamId}` : ""}`}>

@@ -63,6 +63,10 @@ html, body, #root {
   font-size: var(--font-base);
 }
 
+.text-align-center {
+  text-align: center !important;
+}
+
 /* ===== App Grid Layout ===== */
 .app {
   display: grid;
@@ -213,14 +217,16 @@ html, body, #root {
 
 .game-line {
   min-height: 1em;
-  margin-bottom: 1em;
   max-width: 70em;
-
-  &:has(.mono) {
-    margin-bottom: 0;
+}
+.game-line-prompt {
+  min-height: 1em;
+}
+.game-line.stream-logons {
+  & .style-stream {
+    margin-left: -.5em;
   }
 }
-
 /* Style classes */
 .style-room_name {
   color: var(--color-room-name);
@@ -247,10 +253,13 @@ html, body, #root {
 }
 .style-room_players {
   color: var(--color-players);
-  font-weight: bold;
 }
 .style-room_objs {
   color: var(--color-room-objs);
+
+  &.bold {
+    color: var(--color-bold);
+  }
 }
 .style-disconnect {
   color: var(--color-danger);
@@ -448,6 +457,9 @@ html, body, #root {
   margin-top: 3px;
   color: var(--color-room-objs);
 }
+.room-objs b {
+  color: var(--color-bold);
+}
 .room-exits {
   margin-top: 3px;
   color: var(--text-muted);
@@ -561,6 +573,16 @@ html, body, #root {
 }
 .exp-rank {
   color: var(--text-skill);
+  display: flex;
+}
+.exp-whole {
+  margin-right: .8em;
+  text-align: right;
+  width: 50%;  
+}
+.exp-pct {
+    text-align: left;
+    width: 50%;
 }
 .exp-pct {
   /* text-align: right; */

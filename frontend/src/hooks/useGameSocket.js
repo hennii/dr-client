@@ -101,32 +101,36 @@ function reducer(state, action) {
         ? { ...state.room, title: (action.text || "").trim() }
         : state.room;
       if (action.prompt) {
-        return {
-          ...state,
-          room: newRoom,
-          gameLines: appendLines(
-            state.gameLines,
-            { segments: [seg], prompt: true },
-            MAX_LINES
-          ),
-        };
+        // Legacy handling — prompt flag no longer set by backend
+        return state;
       }
       // Merge with previous line if it hasn't been ended by a line_break
       const prev = state.gameLines[state.gameLines.length - 1];
       if (prev && !prev.prompt && !prev.ended && prev.segments) {
+        // Track line-level style when room_objs/room_players appears mid-line
+        let newLineStyle = prev.lineStyle;
+        if (seg.style === "room_objs" || seg.style === "room_players") {
+          newLineStyle = seg.style;
+        }
+        // Inherit line-level style for unstyled segments
+        if (!seg.style && newLineStyle) {
+          seg.style = newLineStyle;
+        }
         const merged = [...state.gameLines];
         merged[merged.length - 1] = {
           ...prev,
+          lineStyle: newLineStyle,
           segments: [...prev.segments, seg],
         };
         return { ...state, room: newRoom, gameLines: merged };
       }
+      const lineStyle = (seg.style === "room_objs" || seg.style === "room_players") ? seg.style : null;
       return {
         ...state,
         room: newRoom,
         gameLines: appendLines(
           state.gameLines,
-          { segments: [seg], prompt: false },
+          { segments: [seg], prompt: false, lineStyle },
           MAX_LINES
         ),
       };
@@ -210,6 +214,14 @@ function reducer(state, action) {
       };
     case "prompt":
       return { ...state, promptTime: action.time };
+    case "prompt_spacer": {
+      const lastLine = state.gameLines[state.gameLines.length - 1];
+      if (lastLine && lastLine.prompt) return state;
+      return {
+        ...state,
+        gameLines: appendLines(state.gameLines, { prompt: true }, MAX_LINES),
+      };
+    }
     case "exp":
       return {
         ...state,
@@ -308,7 +320,7 @@ export function useGameSocket() {
   const intentionalClose = useRef(false);
 
   useEffect(() => {
-    intentionalClose.current = false;
+    let closed = false;
     let retryDelay = 2000;
     const MAX_RETRY_DELAY = 10000;
 
@@ -375,7 +387,7 @@ export function useGameSocket() {
     }
 
     function scheduleReconnect() {
-      if (intentionalClose.current) return;
+      if (closed) return;
       clearTimeout(reconnectTimer.current);
       console.log(`[ws] Reconnecting in ${retryDelay / 1000}s...`);
       reconnectTimer.current = setTimeout(() => {
@@ -387,7 +399,7 @@ export function useGameSocket() {
     connect();
 
     return () => {
-      intentionalClose.current = true;
+      closed = true;
       clearTimeout(reconnectTimer.current);
       wsRef.current?.close();
     };
