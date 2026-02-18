@@ -4,6 +4,11 @@ const MAX_LINES = 2000;
 const MAX_STREAM_LINES = 200;
 const MAX_SCRIPT_LINES = 500;
 
+// Module-level counter for stable line IDs. Never resets, so React keys are
+// always unique and never collide between old and new lines.
+let _nextLineId = 0;
+function nextLineId() { return ++_nextLineId; }
+
 const initialState = {
   gameLines: [],
   vitals: {},
@@ -28,7 +33,8 @@ const initialState = {
 };
 
 function appendLines(existing, newLine, max) {
-  const updated = [...existing, newLine];
+  const lineWithId = { ...newLine, id: nextLineId() };
+  const updated = [...existing, lineWithId];
   return updated.length > max ? updated.slice(-max) : updated;
 }
 

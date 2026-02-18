@@ -299,7 +299,6 @@ html, body, #root {
   color: var(--text-dim);
 }
 .bold {
-  font-weight: bold;
   color: var(--color-bold);
 }
 .style-room_players {
