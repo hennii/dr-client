@@ -44,9 +44,10 @@
 
   /* Font sizes */
   --font-base: 15px;
-  --font-sm: calc(var(--font-base) * 0.75);
-  --font-xs: calc(var(--font-base) * 0.6875);
-  --font-xxs: calc(var(--font-base) * 0.625);
+  --font-sm: calc(var(--font-base) * 0.86667);
+  --font-xs: calc(var(--font-base) * 0.75);
+  --font-xxs: calc(var(--font-base) * 0.6875);
+  --font-xxxs: calc(var(--font-base) * 0.625);
 }
 
 * {
@@ -88,7 +89,7 @@ html, body, #root {
   padding: 4px 12px;
   background: var(--bg-elevated);
   border-bottom: 1px solid var(--border);
-  font-size: var(--font-sm);
+  font-size: var(--font-xs);
 }
 .toolbar-row {
   display: flex;
@@ -147,7 +148,7 @@ html, body, #root {
 .status-badge {
   padding: 1px 5px;
   border-radius: 3px;
-  font-size: var(--font-xs);
+  font-size: var(--font-xxs);
   font-weight: bold;
 }
 .status-good {
@@ -180,7 +181,7 @@ html, body, #root {
 .vital-label {
   color: var(--text-dim);
   font-weight: bold;
-  font-size: var(--font-xs);
+  font-size: var(--font-xxs);
   flex-shrink: 0;
   margin-right: 4px;
 }
@@ -198,7 +199,7 @@ html, body, #root {
   transition: width 0.3s ease;
 }
 .vital-pct {
-  font-size: var(--font-xxs);
+  font-size: var(--font-xxxs);
   color: var(--text-dim);
   width: 28px;
   text-align: right;
@@ -277,7 +278,7 @@ html, body, #root {
   font-weight: bold;
 }
 .mono {
-  /* white-space: pre; */
+  white-space: pre;
 }
 
 /* ===== Command Input Area ===== */
@@ -337,7 +338,7 @@ html, body, #root {
   left: 0;
   right: 0;
   text-align: center;
-  font-size: var(--font-xxs);
+  font-size: var(--font-xxxs);
   line-height: 14px;
   color: #fff;
   text-shadow: 0 0 2px rgba(0,0,0,0.8);
@@ -408,7 +409,7 @@ html, body, #root {
 /* Drag grip indicator */
 .drag-grip {
   color: var(--text-ghost);
-  font-size: var(--font-xxs);
+  font-size: var(--font-xxxs);
   letter-spacing: 1px;
   margin-left: auto;
 }
@@ -424,7 +425,7 @@ html, body, #root {
   background: var(--border-subtle);
 }
 .panel-toggle {
-  font-size: var(--font-xxs);
+  font-size: var(--font-xxxs);
   width: 12px;
   color: var(--text-subtle);
 }
@@ -490,7 +491,7 @@ html, body, #root {
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: var(--font-xxs);
+  font-size: var(--font-xxxs);
   font-weight: bold;
   border: none;
   border-radius: 3px;
@@ -517,7 +518,7 @@ html, body, #root {
   gap: 4px;
 }
 .compass-extra {
-  font-size: var(--font-xxs);
+  font-size: var(--font-xxxs);
   font-weight: bold;
   padding: 2px 8px;
   border: none;
@@ -550,7 +551,7 @@ html, body, #root {
 .exp-table {
   width: 100%;
   border-collapse: collapse;
-  /* font-size: var(--font-xs); */
+  /* font-size: var(--font-xxs); */
 }
 .exp-table th {
   text-align: left;
@@ -601,7 +602,7 @@ html, body, #root {
 .stream-panel {
 }
 .stream-content {
-  font-size: var(--font-sm);
+  font-size: var(--font-xs);
   line-height: 1.3;
 }
 .stream-line {
@@ -625,7 +626,7 @@ html, body, #root {
 .active-spells-text {
   color: var(--text-secondary);
   white-space: pre-wrap;
-  font-size: var(--font-sm);
+  font-size: var(--font-xs);
   line-height: 1.3;
 }
 
@@ -664,7 +665,7 @@ html, body, #root {
   padding: 2px 4px;
 }
 .map-zone-title {
-  font-size: var(--font-xs);
+  font-size: var(--font-xxs);
   color: var(--text-muted);
 }
 .map-focus-btn {
@@ -673,7 +674,7 @@ html, body, #root {
   border: 1px solid var(--border);
   border-radius: 3px;
   padding: 0 5px;
-  font-size: var(--font-sm);
+  font-size: var(--font-xs);
   font-family: inherit;
   cursor: pointer;
   line-height: 1.4;
@@ -730,7 +731,7 @@ html, body, #root {
   border: 1px solid var(--border);
   border-radius: 3px;
   padding: 1px 6px;
-  font-size: var(--font-xxs);
+  font-size: var(--font-xxxs);
   font-family: inherit;
   cursor: pointer;
 }
@@ -754,7 +755,7 @@ html, body, #root {
   border: 1px solid var(--border);
   border-radius: 3px;
   padding: 2px 8px;
-  font-size: var(--font-xs);
+  font-size: var(--font-xxs);
   font-family: inherit;
   cursor: pointer;
 }
@@ -781,7 +782,7 @@ html, body, #root {
   align-items: center;
   gap: 6px;
   color: var(--text-secondary);
-  font-size: var(--font-xs);
+  font-size: var(--font-xxs);
   cursor: pointer;
 }
 .log-toggle-item input {
