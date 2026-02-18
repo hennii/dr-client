@@ -3,7 +3,10 @@
     "allow": [
       "Bash(ls:*)",
       "Bash(ruby:*)",
-      "Bash(npm run build:*)"
+      "Bash(npm run build:*)",
+      "WebSearch",
+      "WebFetch(domain:game-icons.net)",
+      "WebFetch(domain:static.thenounproject.com)"
     ]
   }
 }

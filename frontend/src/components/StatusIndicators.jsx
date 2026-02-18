@@ -1,33 +1,178 @@
 import React from "react";
 
-const INDICATOR_CONFIG = [
-  { id: "IconSTANDING", label: "Stand", type: "good" },
-  { id: "IconKNEELING", label: "Kneel", type: "neutral" },
-  { id: "IconSITTING", label: "Sit", type: "neutral" },
-  { id: "IconPRONE", label: "Prone", type: "bad" },
-  { id: "IconHIDDEN", label: "Hide", type: "good" },
-  { id: "IconINVISIBLE", label: "Invis", type: "good" },
-  { id: "IconDEAD", label: "DEAD", type: "bad" },
-  { id: "IconSTUNNED", label: "Stun", type: "bad" },
-  { id: "IconBLEEDING", label: "Bleed", type: "bad" },
-  { id: "IconWEBBED", label: "Web", type: "bad" },
-  { id: "IconJOINED", label: "Join", type: "neutral" },
+/* SVG icon components — all render at 16×16, use fill="currentColor" */
+
+function IconStand() {
+  return (
+    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+      <path d="M15 8c1.628 0 3.2 .787 4.707 2.293a1 1 0 0 1 -1.414 1.414c-.848 -.848 -1.662 -1.369 -2.444 -1.587l-.849 5.944v4.936a1 1 0 0 1 -2 0v-4h-2v4a1 1 0 0 1 -2 0v-4.929l-.85 -5.951c-.781 .218 -1.595 .739 -2.443 1.587a1 1 0 1 1 -1.414 -1.414c1.506 -1.506 3.08 -2.293 4.707 -2.293z" />
+      <path d="M12 1a3 3 0 1 1 -3 3l.005 -.176a3 3 0 0 1 2.995 -2.824" />
+    </svg>
+  );
+}
+
+function IconKneel() {
+  return (
+    <svg width="16" height="16" viewBox="0 0 512 512" fill="currentColor">
+      <g transform="translate(0,512) scale(0.1,-0.1)">
+        <path d="M1819 4626 c-101 -41 -163 -98 -206 -191 -25 -53 -28 -71 -28 -160 0 -87 3 -107 26 -155 107 -228 408 -288 594 -119 177 163 158 452 -41 584 -104 69 -238 85 -345 41z"/>
+        <path d="M2460 3991 c-89 -18 -192 -91 -234 -164 -13 -23 -97 -226 -186 -452 -89 -225 -163 -411 -165 -413 -1 -1 -196 -27 -433 -57 -484 -60 -492 -63 -538 -141 -56 -96 -23 -211 76 -262 l45 -22 562 2 561 3 43 30 c24 17 53 44 64 61 11 17 67 148 125 292 57 144 107 262 111 262 11 0 86 -115 118 -184 38 -79 67 -168 87 -259 17 -84 30 -272 20 -311 l-6 -26 -613 0 c-577 0 -614 -1 -652 -19 -56 -27 -94 -66 -122 -128 l-25 -54 34 -767 c38 -855 33 -814 111 -876 31 -25 49 -31 100 -34 55 -3 67 0 108 26 89 57 86 38 114 698 14 318 25 596 25 617 l0 37 505 0 505 0 0 -77 c-1 -43 -7 -304 -14 -580 -8 -277 -11 -517 -7 -535 11 -48 35 -90 72 -126 63 -61 66 -62 685 -62 330 -1 571 3 585 9 37 13 87 59 106 94 20 39 20 125 0 163 -20 38 -65 80 -100 93 -16 6 -211 34 -434 61 -223 27 -408 51 -410 53 -2 2 10 226 27 498 16 272 37 616 46 764 32 528 6 755 -120 1060 -48 115 -93 196 -174 315 -196 286 -343 409 -500 416 -37 2 -83 -1 -102 -5z"/>
+      </g>
+    </svg>
+  );
+}
+
+function IconSit() {
+  return (
+    <svg width="16" height="16" viewBox="0 0 512 512" fill="currentColor">
+      <g transform="translate(0,512) scale(0.1,-0.1)">
+        <path d="M3836 4980 c-234 -42 -445 -198 -555 -410 -65 -125 -86 -213 -85 -365 0 -153 18 -226 92 -370 86 -167 257 -309 447 -372 109 -35 299 -44 407 -18 131 32 244 89 335 167 125 107 213 247 254 404 24 93 29 257 9 349 -59 280 -267 508 -545 595 -79 24 -274 36 -359 20z"/>
+        <path d="M1648 3287 c-146 -42 -242 -150 -267 -302 -25 -152 48 -308 176 -377 72 -39 983 -288 1053 -288 30 0 102 12 160 26 179 43 320 72 320 65 0 -11 -240 -984 -244 -988 -2 -2 -37 31 -77 74 -41 43 -110 116 -155 163 -44 47 -152 162 -239 255 -87 94 -174 184 -194 201 -80 69 -175 99 -291 92 -66 -4 -92 -11 -155 -42 l-75 -37 -567 -627 c-312 -345 -588 -651 -614 -680 -159 -175 -150 -427 21 -585 85 -79 146 -101 280 -102 96 0 110 2 165 29 32 16 79 48 104 70 24 23 215 230 425 461 209 231 397 437 416 458 l36 39 354 -379 c449 -480 508 -538 601 -589 152 -84 273 -109 497 -101 272 9 409 63 573 227 103 103 149 177 188 303 11 38 102 477 201 976 193 971 197 1000 165 1126 -52 204 -212 376 -405 436 -101 31 -331 52 -494 45 -218 -10 -572 -66 -888 -140 l-96 -23 -394 109 c-417 116 -491 130 -580 105z"/>
+      </g>
+    </svg>
+  );
+}
+
+function IconProne() {
+  return (
+    <svg width="16" height="16" viewBox="0 0 512 512" fill="currentColor">
+      <g transform="translate(0,512) scale(0.1,-0.1)">
+        <path d="M4166 3864 c-37 -7 -98 -27 -135 -44 -438 -205 -535 -770 -190 -1110 274 -270 751 -244 991 54 282 351 174 848 -227 1047 -131 65 -286 84 -439 53z"/>
+        <path d="M2175 3400 c-385 -33 -737 -67 -783 -75 -262 -49 -454 -257 -492 -534 -13 -94 -3 -185 30 -278 11 -30 73 -148 139 -262 66 -113 123 -214 126 -223 6 -16 -21 -17 -387 -20 l-393 -3 -60 -28 c-268 -125 -303 -496 -63 -660 112 -77 54 -72 908 -72 763 0 765 0 818 22 154 63 245 198 245 363 -1 99 -15 133 -157 374 -64 109 -115 200 -114 201 2 3 645 44 877 58 l44 2 17 -75 c10 -41 45 -199 79 -350 40 -176 73 -298 91 -338 59 -127 206 -239 345 -261 34 -6 256 -9 510 -8 449 2 450 2 510 26 83 33 164 115 195 196 18 49 21 75 18 140 -7 135 -66 227 -182 288 l-61 32 -372 3 c-205 2 -373 4 -373 6 0 26 -274 1208 -290 1249 -41 108 -149 216 -260 258 -94 37 -201 33 -965 -31z"/>
+      </g>
+    </svg>
+  );
+}
+
+function IconHidden() {
+  return (
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+      <path d="M12 4c4.29 0 7.863 2.429 10.665 7.154a2 2 0 0 1 0 1.692C19.863 17.571 16.29 20 12 20S4.137 17.571 1.335 12.846a2 2 0 0 1 0-1.692C4.137 6.429 7.71 4 12 4zm0 4a4 4 0 1 0 0 8 4 4 0 0 0 0-8zm0 2a2 2 0 1 1 0 4 2 2 0 0 1 0-4z"/>
+      <rect x="11" y="1" width="2" height="22" rx="1" transform="rotate(45 12 12)" fill="#2a1a3a"/>
+      <rect x="10.25" y="1" width="3.5" height="22" rx="1" transform="rotate(45 12 12)"/>
+    </svg>
+  );
+}
+
+function IconInvisible() {
+  return (
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" opacity="0.5">
+      <path d="M15 8c1.628 0 3.2 .787 4.707 2.293a1 1 0 0 1 -1.414 1.414c-.848 -.848 -1.662 -1.369 -2.444 -1.587l-.849 5.944v4.936a1 1 0 0 1 -2 0v-4h-2v4a1 1 0 0 1 -2 0v-4.929l-.85 -5.951c-.781 .218 -1.595 .739 -2.443 1.587a1 1 0 1 1 -1.414 -1.414c1.506 -1.506 3.08 -2.293 4.707 -2.293z" />
+      <path d="M12 1a3 3 0 1 1 -3 3l.005 -.176a3 3 0 0 1 2.995 -2.824" />
+    </svg>
+  );
+}
+
+function IconDead() {
+  return (
+    <svg width="16" height="16" viewBox="0 0 512 512" fill="currentColor">
+      <g transform="translate(0,512) scale(0.1,-0.1)">
+        <path d="M1415 4598 c-74 -14 -187 -73 -245 -129 -80 -77 -104 -138 -110 -284 l-5 -120 -120 -5 c-106 -5 -127 -9 -178 -34 -119 -58 -213 -191 -237 -337 -29 -169 28 -331 157 -449 120 -110 196 -130 485 -130 323 0 377 -19 558 -196 l116 -113 242 242 242 242 -103 103 c-186 185 -206 239 -206 562 -1 298 -27 387 -146 506 -120 121 -286 173 -450 142z"/>
+        <path d="M3504 4595 c-168 -36 -306 -158 -366 -322 -19 -51 -22 -87 -28 -318 -8 -285 -15 -324 -80 -424 -16 -25 -343 -359 -727 -742 -523 -521 -711 -702 -749 -722 -88 -46 -159 -57 -380 -57 -228 0 -292 -9 -383 -53 -198 -97 -308 -310 -271 -526 24 -142 118 -280 230 -337 49 -25 69 -29 180 -33 l125 -6 5 -120 c4 -103 9 -128 32 -178 73 -155 284 -263 472 -241 173 19 323 125 395 277 43 93 51 148 52 380 0 241 11 305 69 400 23 39 248 270 734 755 648 647 706 702 766 730 97 45 150 52 378 52 299 0 379 24 502 149 76 77 115 150 137 260 41 199 -66 431 -236 510 -47 21 -75 26 -176 31 l-120 5 -5 120 c-7 167 -38 231 -154 319 -63 48 -123 75 -201 92 -75 16 -123 16 -201 -1z"/>
+        <path d="M3042 2077 l-242 -242 100 -100 c112 -111 150 -163 181 -251 19 -52 23 -89 29 -319 5 -158 12 -276 20 -300 45 -147 169 -275 311 -324 226 -78 489 19 586 216 25 51 29 72 33 178 l5 120 120 5 c102 4 128 9 176 31 170 80 278 315 236 516 -23 109 -61 179 -136 253 -125 123 -214 150 -496 150 -324 0 -383 21 -565 197 l-116 112 -242 -242z"/>
+      </g>
+    </svg>
+  );
+}
+
+function IconStunned() {
+  return (
+    <svg width="16" height="16" viewBox="0 0 512 512" fill="currentColor">
+      <g transform="translate(0,512) scale(0.1,-0.1)">
+        <path d="M2618 4396 c-262 -374 -618 -881 -789 -1126 -704 -1003 -780 -1112 -777 -1116 2 -1 297 -45 657 -96 448 -64 655 -97 658 -106 4 -9 -282 -1679 -323 -1887 -4 -18 94 115 252 345 142 206 599 870 1016 1475 707 1025 757 1100 736 1107 -13 4 -144 28 -293 53 -546 93 -910 157 -914 161 -2 2 55 423 127 936 72 512 131 933 129 934 -1 1 -217 -305 -479 -680z"/>
+      </g>
+    </svg>
+  );
+}
+
+function IconBleeding() {
+  return (
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+      <path d="M12 2c0 0-6 7.5-6 12a6 6 0 0 0 12 0c0-4.5-6-12-6-12z"/>
+    </svg>
+  );
+}
+
+function IconWebbed() {
+  return (
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+      <circle cx="12" cy="12" r="10"/>
+      <circle cx="12" cy="12" r="5"/>
+      <line x1="12" y1="2" x2="12" y2="22"/>
+      <line x1="2" y1="12" x2="22" y2="12"/>
+      <line x1="5" y1="5" x2="19" y2="19"/>
+      <line x1="19" y1="5" x2="5" y2="19"/>
+    </svg>
+  );
+}
+
+function IconJoined() {
+  return (
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+      <circle cx="8" cy="4" r="2.5"/>
+      <circle cx="16" cy="4" r="2.5"/>
+      <path d="M11 8H5c-1 0-1.5.7-1.2 1.5L5.5 14v7a1 1 0 0 0 2 0v-6h1v6a1 1 0 0 0 2 0v-7l1.7-4.5C12.5 8.7 12 8 11 8z"/>
+      <path d="M19 8h-6c-1 0-1.5.7-1.2 1.5L13.5 14v7a1 1 0 0 0 2 0v-6h1v6a1 1 0 0 0 2 0v-7l1.7-4.5C20.5 8.7 20 8 19 8z"/>
+    </svg>
+  );
+}
+
+/* Slot definitions: each slot picks the first matching active indicator */
+const SLOTS = [
+  {
+    // Body position: stand > kneel > sit > prone (priority order)
+    indicators: [
+      { id: "IconSTANDING", icon: IconStand, color: "purple" },
+      { id: "IconKNEELING", icon: IconKneel, color: "purple" },
+      { id: "IconSITTING", icon: IconSit, color: "purple" },
+      { id: "IconPRONE", icon: IconProne, color: "warning" },
+    ],
+  },
+  {
+    // Stunned / Dead
+    indicators: [
+      { id: "IconDEAD", icon: IconDead, color: "bad" },
+      { id: "IconSTUNNED", icon: IconStunned, color: "warning" },
+    ],
+  },
+  {
+    indicators: [{ id: "IconHIDDEN", icon: IconHidden, color: "purple" }],
+  },
+  {
+    indicators: [{ id: "IconINVISIBLE", icon: IconInvisible, color: "purple" }],
+  },
+  {
+    indicators: [{ id: "IconBLEEDING", icon: IconBleeding, color: "bad" }],
+  },
+  {
+    indicators: [{ id: "IconWEBBED", icon: IconWebbed, color: "warning" }],
+  },
+  {
+    indicators: [{ id: "IconJOINED", icon: IconJoined, color: "purple" }],
+  },
 ];
 
 export default function StatusIndicators({ indicators }) {
-  const active = INDICATOR_CONFIG.filter(
-    ({ id }) => indicators[id] === true
-  );
-
-  if (active.length === 0) return null;
-
   return (
     <div className="status-indicators">
-      {active.map(({ id, label, type }) => (
-        <span key={id} className={`status-badge status-${type}`}>
-          {label}
-        </span>
-      ))}
+      {SLOTS.map((slot, i) => {
+        let active = null;
+        for (const entry of slot.indicators) {
+          if (indicators[entry.id]) {
+            active = entry;
+            break;
+          }
+        }
+        if (active) {
+          const Icon = active.icon;
+          return (
+            <span key={i} className={`status-badge status-${active.color}`}>
+              <Icon />
+            </span>
+          );
+        }
+        return <span key={i} className="status-badge status-empty" />;
+      })}
     </div>
   );
 }
