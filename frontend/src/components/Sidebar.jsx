@@ -21,7 +21,7 @@ import MapPanel from "./MapPanel";
 
 const LAYOUT_KEY = "dr-client-layout";
 
-const DEFAULT_PANEL_ORDER = ["room", "compass", "map", "spells", "arrivals"];
+const DEFAULT_PANEL_ORDER = ["room", "map", "spells", "arrivals"];
 const DEFAULT_COLLAPSED = ["spells", "arrivals"];
 const DEFAULT_PANEL_SIZES = {
   exp: 300,

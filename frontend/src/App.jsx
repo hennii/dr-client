@@ -125,6 +125,8 @@ export default function App() {
         indicators={indicators}
         roundtime={roundtime}
         casttime={casttime}
+        compass={compass}
+        onMove={send}
         logStreams={logStreams}
         sendMessage={sendMessage}
       />

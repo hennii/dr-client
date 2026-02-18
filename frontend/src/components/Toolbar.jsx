@@ -58,7 +58,53 @@ function RoundtimeBars({ roundtime, casttime }) {
   );
 }
 
-export default function Toolbar({ vitals, hands, spell, indicators, roundtime, casttime, logStreams, sendMessage }) {
+const MINI_DIRS = ["nw","n","ne","w","e","sw","s","se"];
+const MINI_EXTRAS = ["up","down","out"];
+const DIR_LABELS = {
+  n:"N", ne:"NE", e:"E", se:"SE",
+  s:"S", sw:"SW", w:"W", nw:"NW",
+  up:"U", down:"D", out:"O",
+};
+
+function MiniCompass({ compass, onMove }) {
+  const exitSet = new Set(compass || []);
+  return (
+    <div className="mini-compass">
+      <div className="mini-compass-grid">
+        {MINI_DIRS.map((dir) => {
+          const active = exitSet.has(dir);
+          return (
+            <button
+              key={dir}
+              className={`mini-compass-cell ${active ? "active" : "inactive"}`}
+              onClick={() => active && onMove(dir)}
+              disabled={!active}
+            >
+              {DIR_LABELS[dir]}
+            </button>
+          );
+        })}
+      </div>
+      <div className="mini-compass-extras">
+        {MINI_EXTRAS.map((dir) => {
+          const active = exitSet.has(dir);
+          return (
+            <button
+              key={dir}
+              className={`mini-compass-cell ${active ? "active" : "inactive"}`}
+              onClick={() => active && onMove(dir)}
+              disabled={!active}
+            >
+              {DIR_LABELS[dir]}
+            </button>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+export default function Toolbar({ vitals, hands, spell, indicators, roundtime, casttime, compass, onMove, logStreams, sendMessage }) {
   return (
     <div className="toolbar">
       <div className="toolbar-row">
@@ -66,6 +112,7 @@ export default function Toolbar({ vitals, hands, spell, indicators, roundtime, c
         <StatusIndicators indicators={indicators} />
         <SpellDisplay spell={spell} />
         <RoundtimeBars roundtime={roundtime} casttime={casttime} />
+        <MiniCompass compass={compass} onMove={onMove} />
         <LogToggle logStreams={logStreams} sendMessage={sendMessage} />
       </div>
       <div className="toolbar-row">

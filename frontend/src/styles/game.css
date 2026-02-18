@@ -99,6 +99,50 @@ html, body, #root {
   gap: 12px;
 }
 
+/* Mini compass (toolbar) */
+.mini-compass {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  flex-shrink: 0;
+}
+.mini-compass-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 18px);
+  grid-template-rows: repeat(3, 14px);
+  gap: 1px;
+}
+.mini-compass-extras {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+.mini-compass-cell {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: var(--font-xxxs);
+  /* font-weight: bold; */
+  border: none;
+  border-radius: 2px;
+  cursor: default;
+  font-family: inherit;
+  padding: 0;
+  line-height: 1;
+}
+.mini-compass-cell.active {
+  background: var(--color-compass-active-bg);
+  color: var(--color-compass-active);
+  cursor: pointer;
+}
+.mini-compass-cell.active:hover {
+  background: var(--color-compass-active-hover);
+}
+.mini-compass-cell.inactive {
+  background: var(--bg-hover);
+  color: var(--border-subtle);
+}
+
 /* Connection status */
 .connection-dot {
   width: 8px;
