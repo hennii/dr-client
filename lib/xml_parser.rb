@@ -212,7 +212,7 @@ class XmlParser
   def flush_text(prompt: false)
     return if @text_buffer.empty?
 
-    @text_buffer = fix_spacing(@text_buffer)
+    @text_buffer = fix_spacing(@text_buffer, mono: @mono)
     event = { type: "text", text: @text_buffer }
     event[:bold] = true if @bold
     event[:mono] = true if @mono
@@ -242,10 +242,9 @@ class XmlParser
     @push_buffer = []
   end
 
-  def fix_spacing(text)
-    text
-      .gsub(/  +/, ' ')                    # collapse double-spaces (DR sentence convention)
-      .gsub(/([.!?])([A-Z])/, '\1 \2')    # insert space after punctuation run-together
+  def fix_spacing(text, mono: false)
+    text = text.gsub(/  +/, ' ') unless mono  # collapse double-spaces (not in mono — preserves column alignment)
+    text.gsub(/([.!?])([A-Z])/, '\1 \2')      # insert space after punctuation run-together
   end
 
   def process_vitals(node)

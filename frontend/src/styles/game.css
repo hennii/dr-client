@@ -372,6 +372,14 @@ html, body, #root {
 .style-combat_damage {
   color: #f0c060;
 }
+.style-command_echo {
+  color: var(--text-primary);
+
+  &:before {
+    content: ">";
+    margin-right: .2em;
+  }
+}
 
 /* ===== Command Input Area ===== */
 .command-area {

@@ -4,6 +4,15 @@ const MAX_LINES = 2000;
 const MAX_STREAM_LINES = 200;
 const MAX_SCRIPT_LINES = 500;
 
+const SCRIPT_WINDOWS_KEY = "dr-client-script-windows";
+
+function loadScriptWindows() {
+  try { return JSON.parse(localStorage.getItem(SCRIPT_WINDOWS_KEY)) || {}; } catch { return {}; }
+}
+function saveScriptWindows(sw) {
+  try { localStorage.setItem(SCRIPT_WINDOWS_KEY, JSON.stringify(sw)); } catch {}
+}
+
 // Module-level counter for stable line IDs. Never resets, so React keys are
 // always unique and never collide between old and new lines.
 let _nextLineId = 0;
@@ -39,10 +48,9 @@ function appendLines(existing, newLine, max) {
 }
 
 // Insert space after sentence-ending punctuation directly followed by a letter
-function fixSpacing(text) {
-  return text
-    .replace(/  +/g, ' ')                 // collapse double-spaces (DR sentence convention)
-    .replace(/([.!?])([A-Za-z])/g, '$1 $2'); // insert space after punctuation run-together
+function fixSpacing(text, mono = false) {
+  let result = mono ? text : text.replace(/  +/g, ' '); // preserve spaces in mono (column alignment)
+  return result.replace(/([.!?])([A-Za-z])/g, '$1 $2'); // insert space after punctuation run-together
 }
 
 const DAMAGE_RE = /The \S+ lands .+?\(\d+\/\d+\).+?\./;
@@ -100,7 +108,7 @@ function reducer(state, action) {
       };
     case "text": {
       const seg = {
-        text: fixSpacing(action.text),
+        text: fixSpacing(action.text, action.mono),
         style: action.style || null,
         bold: action.bold || false,
         mono: action.mono || false,
@@ -221,6 +229,11 @@ function reducer(state, action) {
         ...state,
         indicators: { ...state.indicators, [action.id]: action.visible },
       };
+    case "command_echo":
+      return {
+        ...state,
+        gameLines: appendLines(state.gameLines, { segments: [{ text: action.text, style: "command_echo" }], ended: true }, MAX_LINES),
+      };
     case "prompt":
       return { ...state, promptTime: action.time };
     case "prompt_spacer": {
@@ -324,10 +337,17 @@ function parseExp(skill, text) {
 }
 
 export function useGameSocket() {
-  const [state, dispatch] = useReducer(reducer, initialState);
+  const [state, dispatch] = useReducer(reducer, initialState, (base) => ({
+    ...base,
+    scriptWindows: loadScriptWindows(),
+  }));
   const wsRef = useRef(null);
   const reconnectTimer = useRef(null);
   const intentionalClose = useRef(false);
+
+  useEffect(() => {
+    saveScriptWindows(state.scriptWindows);
+  }, [state.scriptWindows]);
 
   useEffect(() => {
     let closed = false;
@@ -418,6 +438,7 @@ export function useGameSocket() {
   const send = useCallback((text) => {
     if (wsRef.current?.readyState === WebSocket.OPEN) {
       wsRef.current.send(JSON.stringify({ type: "command", text }));
+      dispatch({ type: "command_echo", text });
     }
   }, []);
 
