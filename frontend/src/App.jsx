@@ -1,9 +1,11 @@
 import React, { useRef, useCallback, useState } from "react";
 import { useGameSocket } from "./hooks/useGameSocket";
 import Toolbar from "./components/Toolbar";
+import MainToolbar from "./components/MainToolbar";
 import GameText from "./components/GameText";
 import CommandInput from "./components/CommandInput";
-import Sidebar, { LeftSidebar } from "./components/Sidebar";
+import { LeftSidebar } from "./components/Sidebar";
+import RightSidebars from "./components/RightSidebars";
 
 const LAYOUT_KEY = "dr-client-layout";
 const DEFAULT_SIDEBAR_WIDTH = 280;
@@ -117,6 +119,7 @@ export default function App() {
     >
       <LeftSidebar exp={exp} streams={streams} />
       <div className="left-sidebar-divider" onMouseDown={onLeftDividerMouseDown} />
+      <MainToolbar logStreams={logStreams} sendMessage={sendMessage} />
       <GameText lines={gameLines} onClick={focusInput} />
       <Toolbar
         vitals={vitals}
@@ -127,12 +130,10 @@ export default function App() {
         casttime={casttime}
         compass={compass}
         onMove={send}
-        logStreams={logStreams}
-        sendMessage={sendMessage}
       />
       <CommandInput onSend={send} inputRef={inputRef} />
       <div className="sidebar-divider" onMouseDown={onDividerMouseDown} />
-      <Sidebar
+      <RightSidebars
         room={room}
         exp={exp}
         streams={streams}

@@ -3,8 +3,6 @@ import HandsDisplay from "./HandsDisplay";
 import SpellDisplay from "./SpellDisplay";
 import StatusIndicators from "./StatusIndicators";
 import VitalsBar from "./VitalsBar";
-import LogToggle from "./LogToggle";
-
 function TimerBar({ remaining, duration, className, label }) {
   const pct = duration > 0 ? Math.min((remaining / duration) * 100, 100) : 0;
 
@@ -104,7 +102,7 @@ function MiniCompass({ compass, onMove }) {
   );
 }
 
-const Toolbar = memo(function Toolbar({ vitals, hands, spell, indicators, roundtime, casttime, compass, onMove, logStreams, sendMessage }) {
+const Toolbar = memo(function Toolbar({ vitals, hands, spell, indicators, roundtime, casttime, compass, onMove }) {
   return (
     <div className="toolbar">
       <div className="toolbar-row">
@@ -113,7 +111,6 @@ const Toolbar = memo(function Toolbar({ vitals, hands, spell, indicators, roundt
         <SpellDisplay spell={spell} />
         <RoundtimeBars roundtime={roundtime} casttime={casttime} />
         <MiniCompass compass={compass} onMove={onMove} />
-        <LogToggle logStreams={logStreams} sendMessage={sendMessage} />
       </div>
       <div className="toolbar-row">
         <VitalsBar vitals={vitals} />

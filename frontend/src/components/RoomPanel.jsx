@@ -6,18 +6,13 @@ export default function RoomPanel({ room }) {
       {room.title && (
         <div className="room-title">{room.title}</div>
       )}
-      {room.desc && (
-        <div className="room-desc">{room.desc}</div>
-      )}
-      {room.objs && (
+{room.objs && (
         <div className="room-objs">
-          <span className="room-section-label">Objects: </span>
           <span dangerouslySetInnerHTML={{ __html: room.objs }} />
         </div>
       )}
       {room.players && (
         <div className="room-players">
-          <span className="room-section-label">Players: </span>
           <span dangerouslySetInnerHTML={{ __html: room.players }} />
         </div>
       )}

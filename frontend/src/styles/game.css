@@ -73,13 +73,26 @@ html, body, #root {
 /* ===== App Grid Layout ===== */
 .app {
   display: grid;
-  grid-template-rows: 1fr auto auto;
+  grid-template-rows: auto 1fr auto auto;
   grid-template-columns: 280px 4px 1fr 4px 280px;
   grid-template-areas:
-    "left-sidebar  left-divider  game     divider  sidebar"
-    "left-sidebar  left-divider  toolbar  divider  sidebar"
-    "left-sidebar  left-divider  input    divider  sidebar";
+    "left-sidebar  left-divider  main-toolbar  divider  sidebar"
+    "left-sidebar  left-divider  game          divider  sidebar"
+    "left-sidebar  left-divider  toolbar       divider  sidebar"
+    "left-sidebar  left-divider  input         divider  sidebar";
   height: 100%;
+}
+
+/* ===== Main Toolbar (top of game text area) ===== */
+.main-toolbar {
+  grid-area: main-toolbar;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 2px 8px;
+  background: var(--bg-elevated);
+  border-bottom: 1px solid var(--border);
+  font-size: var(--font-xs);
 }
 
 /* ===== Toolbar ===== */
@@ -258,13 +271,44 @@ html, body, #root {
 }
 
 /* ===== Game Text Area ===== */
-.game-text {
+.game-text-wrap {
   grid-area: game;
+  position: relative;
+  min-height: 0;
+}
+
+.game-text {
+  width: 100%;
+  height: 100%;
   overflow-y: auto;
   padding: 12px;
   white-space: pre-wrap;
   word-wrap: break-word;
   line-height: 1.4;
+  box-sizing: border-box;
+}
+
+.scroll-to-bottom-btn {
+  position: absolute;
+  bottom: 10px;
+  right: 18px;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  border: 1px solid var(--text-dim);
+  background: var(--bg-elevated);
+  color: var(--text-secondary);
+  font-size: 12px;
+  line-height: 1;
+  cursor: pointer;
+  opacity: 0.6;
+  transition: opacity 0.15s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.scroll-to-bottom-btn:hover {
+  opacity: 1;
 }
 
 .game-line {
@@ -319,14 +363,14 @@ html, body, #root {
   color: var(--color-success);
   text-align: center;
 }
-.style-combat_status {
+.stream-combat {
   color: var(--text-dim);
+}
+.style-combat_status {
+  color: var(--text-primary);
 }
 .style-combat_damage {
   color: #f0c060;
-}
-.mono {
-  white-space: pre;
 }
 
 /* ===== Command Input Area ===== */
@@ -423,7 +467,51 @@ html, body, #root {
   background: var(--border-hover);
 }
 
-/* ===== Sidebar ===== */
+/* ===== Right sidebar area ===== */
+.right-sidebars {
+  grid-area: sidebar;
+  display: flex;
+  flex-direction: row;
+  overflow: hidden;
+  min-width: 0;
+}
+
+.sidebar-column {
+  background: var(--bg-surface);
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.sidebar-column-empty {
+  padding: 24px 12px;
+  text-align: center;
+  color: var(--text-dim);
+  font-size: var(--font-xs);
+  border: 1px dashed var(--border);
+  margin: 8px;
+  border-radius: 4px;
+}
+
+.inner-sidebar-divider {
+  width: 4px;
+  flex-shrink: 0;
+  background: var(--border);
+  cursor: col-resize;
+  transition: background 0.15s;
+}
+.inner-sidebar-divider:hover {
+  background: var(--border-hover);
+}
+
+.drag-overlay-panel {
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.5);
+  opacity: 0.9;
+  cursor: grabbing;
+}
+
+/* Keep .sidebar for legacy/LeftSidebar usage if needed */
 .sidebar {
   grid-area: sidebar;
   background: var(--bg-surface);
@@ -494,7 +582,7 @@ html, body, #root {
 }
 .room-title {
   color: var(--color-room-name);
-  margin-bottom: 4px;
+  margin-bottom: 1em;
 }
 .room-desc {
   color: var(--text-secondary);
@@ -676,7 +764,7 @@ html, body, #root {
   line-height: 1.3;
 }
 .script-window-line {
-  color: var(--text-secondary);
+  color: var(--text-primary);
   padding: 1px 0;
   white-space: pre-wrap;
   word-wrap: break-word;
@@ -802,7 +890,7 @@ html, body, #root {
 }
 .log-toggle-menu {
   position: absolute;
-  bottom: 100%;
+  top: 100%;
   right: 0;
   background: var(--bg-elevated);
   border: 1px solid var(--border);
@@ -830,6 +918,7 @@ html, body, #root {
 .game-text::-webkit-scrollbar,
 .left-sidebar::-webkit-scrollbar,
 .sidebar::-webkit-scrollbar,
+.sidebar-column::-webkit-scrollbar,
 .exp-tracker::-webkit-scrollbar,
 .stream-content::-webkit-scrollbar,
 .sidebar-panel-body::-webkit-scrollbar,
@@ -839,6 +928,7 @@ html, body, #root {
 .game-text::-webkit-scrollbar-track,
 .left-sidebar::-webkit-scrollbar-track,
 .sidebar::-webkit-scrollbar-track,
+.sidebar-column::-webkit-scrollbar-track,
 .exp-tracker::-webkit-scrollbar-track,
 .stream-content::-webkit-scrollbar-track,
 .sidebar-panel-body::-webkit-scrollbar-track,
@@ -848,6 +938,7 @@ html, body, #root {
 .game-text::-webkit-scrollbar-thumb,
 .left-sidebar::-webkit-scrollbar-thumb,
 .sidebar::-webkit-scrollbar-thumb,
+.sidebar-column::-webkit-scrollbar-thumb,
 .exp-tracker::-webkit-scrollbar-thumb,
 .stream-content::-webkit-scrollbar-thumb,
 .sidebar-panel-body::-webkit-scrollbar-thumb,
@@ -858,6 +949,7 @@ html, body, #root {
 .game-text::-webkit-scrollbar-thumb:hover,
 .left-sidebar::-webkit-scrollbar-thumb:hover,
 .sidebar::-webkit-scrollbar-thumb:hover,
+.sidebar-column::-webkit-scrollbar-thumb:hover,
 .exp-tracker::-webkit-scrollbar-thumb:hover,
 .stream-content::-webkit-scrollbar-thumb:hover,
 .sidebar-panel-body::-webkit-scrollbar-thumb:hover,

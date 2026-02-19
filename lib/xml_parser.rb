@@ -36,9 +36,14 @@ class XmlParser
     parse_line(line)
 
     # Each feed() call is one \r\n-delimited line from the game server.
-    # Flush any remaining text as a complete line.
-    flush_text
-    emit(type: "line_break")
+    if @in_push_stream
+      # Flush this line's push buffer content as its own stream event so that
+      # multi-line push streams (e.g. combat) don't concatenate into one blob.
+      flush_push_stream_line
+    else
+      flush_text
+      emit(type: "line_break")
+    end
   end
 
   private
@@ -223,20 +228,24 @@ class XmlParser
     @text_buffer = ""
   end
 
-  def flush_push_stream
-    return unless @in_push_stream
+  def flush_push_stream_line
+    return if @push_buffer.empty?
 
     text = fix_spacing(@push_buffer.join)
-    unless text.strip.empty?
-      emit(type: "stream", id: @in_push_stream, text: text)
-    end
+    emit(type: "stream", id: @in_push_stream, text: text) unless text.strip.empty?
+    @push_buffer = []
+  end
+
+  def flush_push_stream
+    flush_push_stream_line
     @in_push_stream = nil
     @push_buffer = []
   end
 
   def fix_spacing(text)
-    # Insert space after sentence-ending punctuation when directly followed by a letter
-    text.gsub(/([.!?])([A-Z])/, '\1 \2')
+    text
+      .gsub(/  +/, ' ')                    # collapse double-spaces (DR sentence convention)
+      .gsub(/([.!?])([A-Z])/, '\1 \2')    # insert space after punctuation run-together
   end
 
   def process_vitals(node)

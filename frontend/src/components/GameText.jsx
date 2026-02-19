@@ -1,4 +1,4 @@
-import React, { useRef, useLayoutEffect, useCallback, memo } from "react";
+import React, { useRef, useLayoutEffect, useCallback, useState, memo } from "react";
 
 // Renders a single game line. memo() means React skips re-rendering this
 // component if the `line` prop reference hasn't changed — which is the common
@@ -47,12 +47,14 @@ const GameText = memo(function GameText({ lines, onClick }) {
   const containerRef = useRef(null);
   const autoScroll = useRef(true);
   const programmaticScroll = useRef(false);
+  const [showScrollBtn, setShowScrollBtn] = useState(false);
 
   // Scroll before browser paints so the user never sees unscrolled content
   useLayoutEffect(() => {
     if (autoScroll.current && containerRef.current) {
       programmaticScroll.current = true;
       containerRef.current.scrollTop = containerRef.current.scrollHeight;
+      setShowScrollBtn(false);
     }
   }, [lines]);
 
@@ -63,17 +65,35 @@ const GameText = memo(function GameText({ lines, onClick }) {
     }
     const el = containerRef.current;
     if (!el) return;
-    autoScroll.current = el.scrollHeight - el.scrollTop - el.clientHeight < 50;
+    const atBottom = el.scrollHeight - el.scrollTop - el.clientHeight < 50;
+    autoScroll.current = atBottom;
+    setShowScrollBtn(!atBottom);
+  }, []);
+
+  const scrollToBottom = useCallback(() => {
+    const el = containerRef.current;
+    if (!el) return;
+    autoScroll.current = true;
+    programmaticScroll.current = true;
+    el.scrollTop = el.scrollHeight;
+    setShowScrollBtn(false);
   }, []);
 
   return (
-    <div className="game-text" ref={containerRef} onScroll={handleScroll} onMouseUp={() => {
-      const sel = window.getSelection();
-      if (!sel || sel.isCollapsed) onClick?.();
-    }}>
-      {lines.map((line) => (
-        <GameLine key={line.id} line={line} />
-      ))}
+    <div className="game-text-wrap">
+      <div className="game-text" ref={containerRef} onScroll={handleScroll} onMouseUp={() => {
+        const sel = window.getSelection();
+        if (!sel || sel.isCollapsed) onClick?.();
+      }}>
+        {lines.map((line) => (
+          <GameLine key={line.id} line={line} />
+        ))}
+      </div>
+      {showScrollBtn && (
+        <button className="scroll-to-bottom-btn" onClick={scrollToBottom} title="Scroll to bottom">
+          &#x25BC;
+        </button>
+      )}
     </div>
   );
 });

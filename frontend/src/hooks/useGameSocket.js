@@ -40,7 +40,9 @@ function appendLines(existing, newLine, max) {
 
 // Insert space after sentence-ending punctuation directly followed by a letter
 function fixSpacing(text) {
-  return text.replace(/([.!?])([A-Za-z])/g, '$1 $2');
+  return text
+    .replace(/  +/g, ' ')                 // collapse double-spaces (DR sentence convention)
+    .replace(/([.!?])([A-Za-z])/g, '$1 $2'); // insert space after punctuation run-together
 }
 
 const DAMAGE_RE = /The \S+ lands .+?\(\d+\/\d+\).+?\./;
