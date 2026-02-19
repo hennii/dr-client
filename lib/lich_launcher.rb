@@ -16,7 +16,7 @@ module LichLauncher
     @sal_file.close
 
     cmd = [
-      "ruby", LICH_PATH,
+      "ruby", "-r", "resolv-replace", LICH_PATH,
       "--dragonrealms",
       "--frostbite",
       @sal_file.path,

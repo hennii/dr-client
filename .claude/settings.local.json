@@ -6,7 +6,11 @@
       "Bash(npm run build:*)",
       "WebSearch",
       "WebFetch(domain:game-icons.net)",
-      "WebFetch(domain:static.thenounproject.com)"
+      "WebFetch(domain:static.thenounproject.com)",
+      "Bash(host:*)",
+      "Bash(curl:*)",
+      "Bash(scutil:*)",
+      "Bash(env)"
     ]
   }
 }
