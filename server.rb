@@ -196,7 +196,7 @@ class GameApp < Sinatra::Base
     # Step 5: Start ScriptApiServer for kor-scripts
     puts "\n=== Starting ScriptApiServer ==="
     @@script_api = ScriptApiServer.new(
-      port: 49167,
+      port: 49166,
       game_state: @@game_state,
       on_window_event: ->(event) { broadcast(event) },
       on_command: ->(cmd) { @@game_connection.send_command(cmd) },
