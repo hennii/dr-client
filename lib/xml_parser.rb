@@ -83,9 +83,16 @@ class XmlParser
       end
       process_nodes(node.children)
 
-    when "streamwindow", "clearstream"
-      # Metadata/clear tags for stream windows; content comes via pushStream
+    when "streamwindow"
+      # Metadata tag for stream windows; content comes via pushStream
       return
+
+    when "clearstream"
+      # clearstream is often on the same line as pushstream. In Nokogiri's HTML
+      # mode, the self-closing clearstream tag (`/>` ignored for non-void elements)
+      # stays open and pushstream becomes its child. Process children so the
+      # nested pushstream is still handled correctly.
+      process_nodes(node.children)
 
     when "popstream"
       flush_push_stream
