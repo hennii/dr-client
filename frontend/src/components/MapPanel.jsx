@@ -1,6 +1,6 @@
-import React, { useMemo, useState, useRef, useEffect, useCallback } from "react";
+import React, { useMemo, useState, useRef, useEffect, useCallback, memo } from "react";
 
-export default function MapPanel({ zone, currentNode, level }) {
+const MapPanel = memo(function MapPanel({ zone, currentNode, level }) {
   const svgRef = useRef(null);
   const [zoom, setZoom] = useState(null);       // { w, h } — zoom dimensions only
   const [panOffset, setPanOffset] = useState(null); // { dx, dy } — manual pan offset from center
@@ -114,6 +114,38 @@ export default function MapPanel({ zone, currentNode, level }) {
     };
   }, [bounds, zoom, currentNodeData, panOffset]);
 
+  // Cull SVG elements to only those within the current viewBox + a small buffer.
+  // A large zone like Crossing has ~2400 SVG elements; when zoomed in you might
+  // only need ~50. Rooms are 4×4 units on a ~10-unit grid, so 20 units of buffer
+  // is enough to keep connections to just-offscreen rooms from disappearing.
+  const CULL_PAD = 20;
+  const visibleNodes = useMemo(() => {
+    if (!zoom) return nodes; // fully zoomed out — show everything
+    const { x, y, w, h } = vb;
+    return nodes.filter(
+      (n) => n.sx >= x - CULL_PAD && n.sx <= x + w + CULL_PAD &&
+             n.sy >= y - CULL_PAD && n.sy <= y + h + CULL_PAD
+    );
+  }, [nodes, vb, zoom]);
+
+  const visibleArcs = useMemo(() => {
+    if (!zoom) return arcs;
+    const { x, y, w, h } = vb;
+    return arcs.filter(
+      (a) => (a.x1 >= x - CULL_PAD && a.x1 <= x + w + CULL_PAD && a.y1 >= y - CULL_PAD && a.y1 <= y + h + CULL_PAD) ||
+             (a.x2 >= x - CULL_PAD && a.x2 <= x + w + CULL_PAD && a.y2 >= y - CULL_PAD && a.y2 <= y + h + CULL_PAD)
+    );
+  }, [arcs, vb, zoom]);
+
+  const visibleLabels = useMemo(() => {
+    if (!zoom) return labels;
+    const { x, y, w, h } = vb;
+    return labels.filter(
+      (l) => l.sx >= x - CULL_PAD && l.sx <= x + w + CULL_PAD &&
+             l.sy >= y - CULL_PAD && l.sy <= y + h + CULL_PAD
+    );
+  }, [labels, vb, zoom]);
+
   // Zoom handler
   const handleWheel = useCallback((e) => {
     e.preventDefault();
@@ -196,7 +228,7 @@ export default function MapPanel({ zone, currentNode, level }) {
         onMouseLeave={handleMouseUp}
       >
         {/* Connection lines */}
-        {arcs.map((a, i) => (
+        {visibleArcs.map((a, i) => (
           <line
             key={i}
             x1={a.x1 + 2}
@@ -208,7 +240,7 @@ export default function MapPanel({ zone, currentNode, level }) {
         ))}
 
         {/* Cross-zone exit markers */}
-        {nodes
+        {visibleNodes
           .filter((n) => n.cross_zone)
           .map((n) => (
             <circle
@@ -221,7 +253,7 @@ export default function MapPanel({ zone, currentNode, level }) {
           ))}
 
         {/* Room rectangles */}
-        {nodes.map((n) => (
+        {visibleNodes.map((n) => (
           <rect
             key={n.id}
             x={n.sx}
@@ -234,7 +266,7 @@ export default function MapPanel({ zone, currentNode, level }) {
         ))}
 
         {/* Labels (on top of rooms, offset down so text sits below the coordinate) */}
-        {labels.map((l, i) => (
+        {visibleLabels.map((l, i) => (
           <text key={i} x={l.sx + 6} y={l.sy + 12} className="map-label">
             {l.text}
           </text>
@@ -252,4 +284,6 @@ export default function MapPanel({ zone, currentNode, level }) {
       </svg>
     </div>
   );
-}
+});
+
+export default MapPanel;
