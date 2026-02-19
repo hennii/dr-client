@@ -234,9 +234,6 @@ const RightSidebars = memo(function RightSidebars({
 
     if (!activeContainerId || !overContainerId) return;
 
-    // strip is only for localStorage — script:* IDs live in state for ordering.
-    const strip = (arr) => arr.filter((id) => !id.startsWith("script:"));
-
     if (activeContainerId === overContainerId) {
       // Same column — reorder.
       const panels = activeContainerId === "s1" ? allS1Panels : allS2Panels;
@@ -245,9 +242,9 @@ const RightSidebars = memo(function RightSidebars({
       if (oldIdx === -1 || newIdx === -1) return;
       const reordered = arrayMove(panels, oldIdx, newIdx);
       if (activeContainerId === "s1") {
-        setS1Panels(reordered); saveLayout({ panelOrder: strip(reordered) });
+        setS1Panels(reordered); saveLayout({ panelOrder: reordered });
       } else {
-        setS2Panels(reordered); saveLayout({ sidebar2PanelOrder: strip(reordered) });
+        setS2Panels(reordered); saveLayout({ sidebar2PanelOrder: reordered });
       }
     } else {
       // Cross-column — move active panel into the other column.
@@ -262,10 +259,10 @@ const RightSidebars = memo(function RightSidebars({
 
       if (fromS1) {
         setS1Panels(newSrc); setS2Panels(newDst);
-        saveLayout({ panelOrder: strip(newSrc), sidebar2PanelOrder: strip(newDst) });
+        saveLayout({ panelOrder: newSrc, sidebar2PanelOrder: newDst });
       } else {
         setS2Panels(newSrc); setS1Panels(newDst);
-        saveLayout({ sidebar2PanelOrder: strip(newSrc), panelOrder: strip(newDst) });
+        saveLayout({ sidebar2PanelOrder: newSrc, panelOrder: newDst });
       }
     }
   }, [allS1Panels, allS2Panels]);
