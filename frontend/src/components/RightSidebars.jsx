@@ -64,7 +64,13 @@ function renderPanelContent(id, props) {
     case "exp":     return <ExpTracker exp={props.exp} />;
     case "thoughts":return <StreamPanel title="Thoughts" lines={props.streams.thoughts || []} colorizeThoughts />;
     case "arrivals":return <StreamPanel title="Arrivals" lines={props.streams.logons || []} />;
-    case "spells":  return <div className="active-spells-text">{props.activeSpells || "No active spells"}</div>;
+    case "spells":  return (
+      <div className="active-spells-text">
+        {props.activeSpells
+          ? props.activeSpells.split("\n").map((line, i) => <div key={i}>{line}</div>)
+          : "No active spells"}
+      </div>
+    );
     default:
       if (id.startsWith("script:")) {
         const name = id.slice(7);

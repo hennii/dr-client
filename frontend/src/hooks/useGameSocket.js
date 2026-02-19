@@ -189,8 +189,11 @@ function reducer(state, action) {
         }
       }
 
-      // Handle active spells stream
-      const newActiveSpells = streamId === "percWindow" ? action.text : state.activeSpells;
+      // Accumulate percWindow lines — the game sends one line per spell within a
+      // single pushStream block. stream_clear resets the buffer before each update.
+      const newActiveSpells = streamId === "percWindow"
+        ? (state.activeSpells ? state.activeSpells + "\n" + action.text : action.text)
+        : state.activeSpells;
 
       return {
         ...state,
@@ -252,6 +255,9 @@ function reducer(state, action) {
           [action.skill]: parseExp(action.skill, action.text),
         },
       };
+    case "stream_clear":
+      if (action.id === "percWindow") return { ...state, activeSpells: "" };
+      return state;
     case "roundtime":
       return { ...state, roundtime: action.value };
     case "casttime":

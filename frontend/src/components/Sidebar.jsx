@@ -137,7 +137,9 @@ function renderPanelContent(id, props) {
     case "spells":
       return (
         <div className="active-spells-text">
-          {props.activeSpells || "No active spells"}
+          {props.activeSpells
+            ? props.activeSpells.split("\n").map((line, i) => <div key={i}>{line}</div>)
+            : "No active spells"}
         </div>
       );
     default:

@@ -88,6 +88,9 @@ class XmlParser
       return
 
     when "clearstream"
+      # Emit a clear signal so the frontend can reset accumulated stream content
+      # (e.g. percWindow spells list) before the new content arrives.
+      emit(type: "stream_clear", id: node["id"])
       # clearstream is often on the same line as pushstream. In Nokogiri's HTML
       # mode, the self-closing clearstream tag (`/>` ignored for non-void elements)
       # stays open and pushstream becomes its child. Process children so the
