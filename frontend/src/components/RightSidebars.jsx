@@ -162,7 +162,7 @@ function SidebarColumn({ columnId, panelIds, collapsedPanels, panelSizes, onTogg
 
 const RightSidebars = memo(function RightSidebars({
   room, exp, streams, activeSpells, compass, scriptWindows,
-  onMove, mapZone, mapCurrentNode, mapLevel,
+  onMove, mapZone, mapCurrentNode, mapLevel, hiddenPanels = new Set(),
 }) {
   // s1 = outer (original) sidebar. Reads legacy panelOrder key for back-compat.
   const [s1Panels, setS1Panels] = useState(() => {
@@ -203,12 +203,16 @@ const RightSidebars = memo(function RightSidebars({
     for (const sid of scriptIds) {
       if (!ordered.includes(sid) && !s2Panels.includes(sid)) ordered.push(sid);
     }
-    return ordered.filter((id) => !id.startsWith("script:") || scriptIds.includes(id));
-  }, [s1Panels, s2Panels, scriptIds]);
+    return ordered
+      .filter((id) => !id.startsWith("script:") || scriptIds.includes(id))
+      .filter((id) => !hiddenPanels.has(id));
+  }, [s1Panels, s2Panels, scriptIds, hiddenPanels]);
 
   const allS2Panels = useMemo(() => {
-    return s2Panels.filter((id) => !id.startsWith("script:") || scriptIds.includes(id));
-  }, [s2Panels, scriptIds]);
+    return s2Panels
+      .filter((id) => !id.startsWith("script:") || scriptIds.includes(id))
+      .filter((id) => !hiddenPanels.has(id));
+  }, [s2Panels, scriptIds, hiddenPanels]);
 
   // ── DnD ─────────────────────────────────────────────────────────────────
   const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 5 } }));

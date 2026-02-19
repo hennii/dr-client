@@ -35,6 +35,19 @@ export default function App() {
     logStreams, mapZone, mapCurrentNode, mapLevel, send, sendMessage,
   } = useGameSocket();
 
+  const [hiddenPanels, setHiddenPanels] = useState(() => {
+    return new Set(loadLayout().hiddenPanels || []);
+  });
+
+  const toggleHiddenPanel = useCallback((id) => {
+    setHiddenPanels((prev) => {
+      const next = new Set(prev);
+      next.has(id) ? next.delete(id) : next.add(id);
+      saveLayout({ hiddenPanels: [...next] });
+      return next;
+    });
+  }, []);
+
   const inputRef = useRef(null);
   const focusInput = useCallback(() => {
     inputRef.current?.focus();
@@ -119,7 +132,13 @@ export default function App() {
     >
       <LeftSidebar exp={exp} streams={streams} />
       <div className="left-sidebar-divider" onMouseDown={onLeftDividerMouseDown} />
-      <MainToolbar logStreams={logStreams} sendMessage={sendMessage} />
+      <MainToolbar
+        logStreams={logStreams}
+        sendMessage={sendMessage}
+        hiddenPanels={hiddenPanels}
+        onTogglePanel={toggleHiddenPanel}
+        scriptWindows={scriptWindows}
+      />
       <GameText lines={gameLines} onClick={focusInput} />
       <Toolbar
         vitals={vitals}
@@ -144,6 +163,7 @@ export default function App() {
         mapZone={mapZone}
         mapCurrentNode={mapCurrentNode}
         mapLevel={mapLevel}
+        hiddenPanels={hiddenPanels}
       />
     </div>
   );

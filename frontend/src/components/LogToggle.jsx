@@ -1,9 +1,17 @@
-import React, { useState } from "react";
+import React, { useState, useEffect, useRef } from "react";
 
 const ALL_STREAMS = ["main", "thoughts", "combat", "arrivals", "deaths", "raw"];
 
 export default function LogToggle({ logStreams, sendMessage }) {
   const [open, setOpen] = useState(false);
+  const ref = useRef(null);
+
+  useEffect(() => {
+    if (!open) return;
+    const handler = (e) => { if (ref.current && !ref.current.contains(e.target)) setOpen(false); };
+    document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
+  }, [open]);
 
   const toggle = (stream) => {
     const enabled = !logStreams.includes(stream);
@@ -11,18 +19,18 @@ export default function LogToggle({ logStreams, sendMessage }) {
   };
 
   return (
-    <div className="log-toggle">
+    <div className="toolbar-dropdown" ref={ref}>
       <button
-        className="log-toggle-btn"
+        className="toolbar-dropdown-btn"
         onClick={() => setOpen(!open)}
         title="Toggle logging"
       >
-        LOG
+        Log
       </button>
       {open && (
-        <div className="log-toggle-menu">
+        <div className="toolbar-dropdown-menu">
           {ALL_STREAMS.map((stream) => (
-            <label key={stream} className="log-toggle-item">
+            <label key={stream} className="toolbar-dropdown-item">
               <input
                 type="checkbox"
                 checked={logStreams.includes(stream)}

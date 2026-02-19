@@ -869,49 +869,59 @@ html, body, #root {
   background: var(--border);
 }
 
-/* Log toggle */
-.log-toggle {
+/* ===== Toolbar dropdowns (shared by all MainToolbar menus) ===== */
+.toolbar-dropdown {
   position: relative;
-  margin-left: auto;
 }
-.log-toggle-btn {
-  background: var(--bg-hover);
-  color: var(--text-muted);
-  border: 1px solid var(--border);
+.toolbar-dropdown-btn {
+  background: transparent;
+  color: var(--text-secondary);
+  border: none;
   border-radius: 3px;
-  padding: 2px 8px;
-  font-size: var(--font-xxs);
+  padding: 3px 10px;
+  font-size: var(--font-sm);
   font-family: inherit;
   cursor: pointer;
 }
-.log-toggle-btn:hover {
-  background: var(--border);
+.toolbar-dropdown-btn:hover {
+  background: var(--bg-hover);
   color: var(--text-primary);
 }
-.log-toggle-menu {
+.toolbar-dropdown-menu {
   position: absolute;
-  top: 100%;
-  right: 0;
-  background: var(--bg-elevated);
-  border: 1px solid var(--border);
-  border-radius: 4px;
-  padding: 6px 10px;
+  top: calc(100% + 4px);
+  left: 0;
+  background: #1a1a1a;
+  border: 1px solid var(--border-hover);
+  border-radius: 6px;
+  padding: 6px 4px;
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 2px;
   z-index: 100;
   white-space: nowrap;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.6);
+  min-width: 160px;
 }
-.log-toggle-item {
+.toolbar-dropdown-item {
   display: flex;
   align-items: center;
-  gap: 6px;
-  color: var(--text-secondary);
-  font-size: var(--font-xxs);
+  gap: 8px;
+  color: var(--text-primary);
+  font-size: var(--font-sm);
+  padding: 5px 12px;
+  border-radius: 4px;
   cursor: pointer;
 }
-.log-toggle-item input {
+.toolbar-dropdown-item:hover {
+  background: var(--bg-hover);
+}
+.toolbar-dropdown-item input {
   cursor: pointer;
+  width: 14px;
+  height: 14px;
+  flex-shrink: 0;
+  accent-color: #8b5cf6;
 }
 
 /* ===== Scrollbar styling ===== */
