@@ -101,3 +101,4 @@ To build for production: `cd frontend && npm run build`
 - When implementing ScriptApiServer commands, test against `kor_frostbite_client.rb` to ensure compatibility
 - ScriptApiServer uses literal `\0` (backslash + zero) as response terminator, NOT a null byte — matching Frostbite's C++ `tr("\\0")` behavior
 - Frontend uses no TypeScript — plain JSX only
+- Do NOT use `white-space: pre` (or `pre-wrap`) for mono-mode game lines — mono mode is for preserving internal column spacing (multiple spaces), not for preventing line wrapping

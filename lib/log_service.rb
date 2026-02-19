@@ -9,6 +9,9 @@ class LogService
     "death" => "deaths",
   }
 
+  # Streams that also appear in the main log (mirrors frontend showInMain)
+  MAIN_STREAMS = %w[combat death logons atmospherics assess]
+
   KNOWN_STREAMS = %w[main thoughts combat arrivals deaths raw]
 
   def initialize(base_dir, char_name)
@@ -33,10 +36,14 @@ class LogService
       when "prompt"
         flush_main_line
       when "stream"
-        stream = STREAM_MAP[event[:id]]
-        return unless stream && @enabled[stream]
         text = (event[:text] || "").strip
-        write_line(stream, text) unless text.empty?
+        next if text.empty?
+        if (stream = STREAM_MAP[event[:id]]) && @enabled[stream]
+          write_line(stream, text)
+        end
+        if MAIN_STREAMS.include?(event[:id]) && @enabled["main"]
+          write_line("main", text)
+        end
       end
     end
   end
@@ -122,7 +129,7 @@ class LogService
   def flush_main_line
     return if @main_buffer.empty?
     return unless @enabled["main"]
-    text = @main_buffer.strip
+    text = @main_buffer.rstrip
     @main_buffer = ""
     write_line("main", text) unless text.empty?
   end
