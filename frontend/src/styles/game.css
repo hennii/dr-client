@@ -90,7 +90,7 @@ html, body, #root {
   align-items: center;
   gap: 8px;
   padding: 2px 8px;
-  background: var(--bg-elevated);
+  background: var(--bg-toolbar);
   border-bottom: 1px solid var(--border);
   font-size: var(--font-xs);
 }
@@ -102,7 +102,7 @@ html, body, #root {
   flex-direction: column;
   gap: 2px;
   padding: 4px 12px;
-  background: var(--bg-elevated);
+  background: var(--bg-toolbar);
   border-bottom: 1px solid var(--border);
   font-size: var(--font-xs);
 }
@@ -296,7 +296,7 @@ html, body, #root {
   height: 32px;
   border-radius: 50%;
   border: 1px solid var(--text-dim);
-  background: var(--bg-elevated);
+  background: var(--bg-toolbar);
   color: var(--text-secondary);
   font-size: 12px;
   line-height: 1;
@@ -384,7 +384,7 @@ html, body, #root {
 /* ===== Command Input Area ===== */
 .command-area {
   grid-area: input;
-  background: var(--bg-elevated);
+  background: var(--bg-toolbar);
   border-top: 1px solid var(--border);
 }
 
@@ -683,8 +683,11 @@ html, body, #root {
 .exp-tracker {
   overflow-y: auto;
   font-size: var(--font-sm);
-}
 
+  &.asleep {
+    background: var(--bg-purple);
+  }
+}
 .exp-empty {
   color: var(--text-subtle);
   padding: 4px 0;
@@ -706,8 +709,16 @@ html, body, #root {
 .exp-table tr:nth-of-type(even) {
   background-color: #3a3a3a;
 }
+.asleep .exp-table tr:nth-of-type(even) {
+  background-color: var(--bg-purple-lighter);
+}
 .exp-table td {
   padding: 1px 4px;
+}
+.asleep .exp-table {
+  & td {
+  color: var(--text-skill) !important;
+  }
 }
 .exp-skill {
   color: var(--text-skill);
@@ -734,6 +745,41 @@ html, body, #root {
   text-align: right;
   padding-left: 8px;
 }
+.exp-summary {
+  margin-top: 1em;
+  margin-left: 4px;  
+}
+.exp-rexp {
+  margin-top: 1em;
+  background: var(--bg-toolbar);
+  border-radius: 4px;
+  padding: 4px;
+}
+.asleep .exp-rexp {
+  background-color: var(--bg-purple);
+  padding-left: 0;
+}
+.exp-rexp-title {
+  color: var(--text-dim);
+  font-size: var(--font-xs);
+  padding-bottom: 1em;
+}
+.exp-rexp-summary {
+  margin-bottom: 1em;
+  &.on {
+    color: #d4bc40;
+  }
+  &.off {
+    color: var(--color-players);
+  }
+}
+.exp-sleep {
+  margin-top: 1em;
+}
+.asleep .exp-sleep {
+  margin: 0;
+  padding-bottom: 1em;
+}
 
 /* Stream panel */
 .stream-content {
@@ -743,6 +789,7 @@ html, body, #root {
 .stream-line {
   color: var(--text-primary);
   padding: 1px 0;
+  word-break: break-word;
 }
 .stream-empty {
   color: var(--text-subtle);
