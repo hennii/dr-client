@@ -4,8 +4,12 @@
   /* Background colors */
   --bg-primary: #1a1a1a;
   --bg-surface: #1e1e1e;
-  --bg-elevated: #252525;
-  --bg-hover: #2a2a2a;
+  --bg-toolbar: #252525;
+  --bg-elevated: #252030;
+  --bg-elevated-border: #392f4d;
+  --bg-elevated-hover: #3b334f;
+  --bg-purple: #2a1b3a;
+  --bg-purple-lighter: #35224a;
 
   /* Border / divider / track */
   --border: #333;
@@ -505,7 +509,7 @@ html, body, #root {
 .inner-sidebar-divider {
   width: 4px;
   flex-shrink: 0;
-  background: var(--border);
+  /* background: var(--border); */
   cursor: col-resize;
   transition: background 0.15s;
 }
@@ -537,6 +541,7 @@ html, body, #root {
   gap: 6px;
   padding: 6px 10px;
   background: var(--bg-elevated);
+  border-bottom: 1px solid var(--bg-elevated-border);
   cursor: grab;
   user-select: none;
   font-size: var(--font-sm);
@@ -546,7 +551,7 @@ html, body, #root {
   cursor: grabbing;
 }
 .sidebar-panel-header:hover {
-  background: var(--bg-hover);
+  background: var(--bg-elevated-hover);
 }
 
 /* Drag grip indicator */
@@ -828,7 +833,7 @@ html, body, #root {
 /* Map panel */
 .map-panel {
   overflow: hidden;
-  background: var(--bg-primary);
+  /* background: var(--bg-primary); */
   display: flex;
   flex-direction: column;
   height: 100%;
@@ -1020,4 +1025,29 @@ html, body, #root {
 .sidebar-panel-body::-webkit-scrollbar-thumb:hover,
 .script-window-content::-webkit-scrollbar-thumb:hover {
   background: var(--border-hover);
+}
+
+/* Panel styles */
+
+.sidebar-panel,
+.panel-bg {
+  background: 
+    linear-gradient(
+      180deg,
+      #1c2033 0%,
+      #141826 40%,
+      #0f1220 100%
+    );
+
+  /* Subtle outer glow */
+  box-shadow:
+    0 20px 60px rgba(0, 0, 0, 0.6),
+    0 0 40px rgba(88, 101, 242, 0.08);
+
+  /* Soft border */
+  border: 1px solid rgba(255, 255, 255, 0.05);
+
+  backdrop-filter: blur(12px);
+
+  margin-bottom: 8px;
 }
