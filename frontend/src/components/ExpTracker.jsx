@@ -30,7 +30,7 @@ const LEARNING_COLORS = {
   "captivated": "#44f000",   // 26
   "engrossed": "#40f200",    // 27
   "riveted": "#3cf400",      // 28
-  "very riveted": "#38f600",// 29
+  "very riveted": "#38f600", // 29
   "rapt": "#34f800",         // 30
   "very rapt": "#32fa00",    // 31
   "enthralled": "#31fc00",   // 32
@@ -103,16 +103,8 @@ function toMinutes(str) {
     return parseInt(hoursMatch[1], 10) * 60;
   }
 
-  const lessThanMinute = str.match(/less than a minute/)
-  if (lessThanMinute) {
-    return 1;
-  }
-
-  // Format like "none"
-  const none = str.match(/none/)
-  if (none) {
-    return 0;
-  }
+  if (/less than a minute/.test(str)) return 1;
+  if (/none/.test(str)) return 0;
 
   throw new Error("Invalid time format");
 }
@@ -138,7 +130,6 @@ function formatFutureTime(minutesToAdd) {
     minute: '2-digit',
   });
 
-  // Compare dates (ignore time)
   const isTomorrow =
     future.getDate() !== now.getDate() ||
     future.getMonth() !== now.getMonth() ||
@@ -155,68 +146,26 @@ export default function ExpTracker({ exp }) {
   }, [exp]);
 
   const summaryData = useMemo(() => {
-    return exp.rexp ? parseRestedExp(exp.rexp.text) : {};
-  }, [exp]);
+    return exp.rexp ? parseRestedExp(exp.rexp.text) : null;
+  }, [exp.rexp]);
 
-  
-  const sleepMsg = exp.sleep ? parseSleep(exp.sleep.text) : null;
-  const isAsleep = sleepMsg === fullyAsleepMsg;
-
-  const calcRexpDuration = () => {
+  const rexpCalc = useMemo(() => {
+    if (!summaryData) return null;
     const rexpMinutes = toMinutes(summaryData.rexp);
     const usableMinutes = toMinutes(summaryData.usable);
-    if (rexpMinutes > 0 && usableMinutes > 0) {
-      return rexpMinutes > usableMinutes ? usableMinutes : rexpMinutes;
-    }
-    return 0;
-  };
+    const duration = rexpMinutes > 0 && usableMinutes > 0
+      ? Math.min(rexpMinutes, usableMinutes)
+      : 0;
+    return {
+      duration,
+      durationMsg: formatMinutes(duration),
+      endTime: duration > 0 ? formatFutureTime(duration) : null,
+      storedAndWaiting: rexpMinutes > 0 && usableMinutes === 0,
+    };
+  }, [summaryData]);
 
-  const usableMinutes = summaryData.usable ? toMinutes(summaryData.usable) : null;
-  const rexpDuration = summaryData.rexp ? calcRexpDuration() : null;
-  const rexpDurationMsg = summaryData.rexp ? formatMinutes(rexpDuration) : null;
-  const rexpEndTime = rexpDuration ? formatFutureTime(rexpDuration) : null;
-  const storedAndWaiting = summaryData.rexp ? toMinutes(summaryData.rexp) > 0 && !usableMinutes : null;
-
-  const rexpDurationSummary = (
-    <div>
-    {rexpDuration > 0 &&
-      <div className="exp-rexp-summary on">
-        Using REXP for the next {rexpDurationMsg}
-        {rexpEndTime &&
-          <div> (ending at {rexpEndTime})</div>
-        }
-      </div>
-    }
-    {rexpDuration === 0 && (
-      <>
-        <div className="exp-rexp-summary off">
-          Not currently using REXP
-          {storedAndWaiting && (
-            <span> (restarting at {formatFutureTime(toMinutes(summaryData.refreshes))})</span>
-          )}
-        </div>
-      </>
-    )}
-    </div>
-  )
-
-  const summary = (
-    <div className="exp-summary">
-      <div className="exp-total">Total skills: {skills.length}</div>
-      <div className="exp-rexp">
-        <div className="exp-rexp-title">Rested Experience</div>
-        {!isAsleep && (
-          <div>
-            {rexpDurationSummary}
-            <div className="exp-stored">Stored: &nbsp;&nbsp;&nbsp;{summaryData.rexp}</div>
-            <div className="exp-usable">Usable: &nbsp;&nbsp;&nbsp;{summaryData.usable}</div>
-            <div className="exp-refreshes">Refreshes: {summaryData.refreshes}</div>
-          </div>
-        )}
-        {sleepMsg && <div className="exp-sleep">{sleepMsg}</div>}
-      </div>
-    </div>
-  )
+  const sleepMsg = exp.sleep ? parseSleep(exp.sleep.text) : null;
+  const isAsleep = sleepMsg === fullyAsleepMsg;
 
   if (skills.length === 0) {
     return <div className="exp-tracker exp-empty">No skills tracked yet</div>;
@@ -252,7 +201,33 @@ export default function ExpTracker({ exp }) {
           ))}
         </tbody>
       </table>
-      {summary}
+      <div className="exp-summary">
+        <div className="exp-total">Total skills: {skills.length}</div>
+        <div className="exp-rexp">
+          <div className="exp-rexp-title">Rested Experience</div>
+          {!isAsleep && rexpCalc && (
+            <div>
+              {rexpCalc.duration > 0 ? (
+                <div className="exp-rexp-summary on">
+                  Using REXP for the next {rexpCalc.durationMsg}
+                  {rexpCalc.endTime && <div>(ending at {rexpCalc.endTime})</div>}
+                </div>
+              ) : (
+                <div className="exp-rexp-summary off">
+                  Not currently using REXP
+                  {rexpCalc.storedAndWaiting && (
+                    <span> (restarting at {formatFutureTime(toMinutes(summaryData.refreshes))})</span>
+                  )}
+                </div>
+              )}
+              <div className="exp-stored">Stored: &nbsp;&nbsp;&nbsp;{summaryData.rexp}</div>
+              <div className="exp-usable">Usable: &nbsp;&nbsp;&nbsp;{summaryData.usable}</div>
+              <div className="exp-refreshes">Refreshes: {summaryData.refreshes}</div>
+            </div>
+          )}
+          {sleepMsg && <div className="exp-sleep">{sleepMsg}</div>}
+        </div>
+      </div>
     </div>
   );
 }
