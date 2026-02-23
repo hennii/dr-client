@@ -142,9 +142,10 @@ class GameApp < Sinatra::Base
   get "/settings" do
     content_type :json
     if File.exist?(SETTINGS_FILE)
-      File.read(SETTINGS_FILE)
+      content = File.read(SETTINGS_FILE)
+      content.strip.empty? ? { highlights: [], presets: [] }.to_json : content
     else
-      { highlights: [] }.to_json
+      { highlights: [], presets: [] }.to_json
     end
   end
 
