@@ -29,6 +29,7 @@ const initialState = {
   connected: false,
   exp: {},
   activeSpells: "",
+  pendingSpells: "",
   streams: {},
   scriptWindows: {},
   roundtime: null,
@@ -189,17 +190,17 @@ function reducer(state, action) {
         }
       }
 
-      // Accumulate percWindow lines — the game sends one line per spell within a
-      // single pushStream block. stream_clear resets the buffer before each update.
-      const newActiveSpells = streamId === "percWindow"
-        ? (state.activeSpells ? state.activeSpells + "\n" + action.text : action.text)
-        : state.activeSpells;
+      // Accumulate percWindow lines into pendingSpells. The panel only swaps to
+      // the new list on prompt, so the displayed spells never flash blank mid-update.
+      const newPendingSpells = streamId === "percWindow"
+        ? (state.pendingSpells ? state.pendingSpells + "\n" + action.text : action.text)
+        : state.pendingSpells;
 
       return {
         ...state,
         streams: newStreams,
         gameLines: newGameLines,
-        activeSpells: newActiveSpells,
+        pendingSpells: newPendingSpells,
       };
     }
     case "line_break": {
@@ -238,7 +239,11 @@ function reducer(state, action) {
         gameLines: appendLines(state.gameLines, { segments: [{ text: action.text, style: "command_echo" }], ended: true }, MAX_LINES),
       };
     case "prompt":
-      return { ...state, promptTime: action.time };
+      return {
+        ...state,
+        promptTime: action.time,
+        activeSpells: state.pendingSpells,
+      };
     case "prompt_spacer": {
       const lastLine = state.gameLines[state.gameLines.length - 1];
       if (lastLine && lastLine.prompt) return state;
@@ -256,7 +261,7 @@ function reducer(state, action) {
         },
       };
     case "stream_clear":
-      if (action.id === "percWindow") return { ...state, activeSpells: "" };
+      if (action.id === "percWindow") return { ...state, pendingSpells: "" };
       return state;
     case "roundtime":
       return { ...state, roundtime: action.value };
