@@ -200,6 +200,10 @@ class XmlParser
       emit(type: "char_name", name: name) if name
       process_nodes(node.children)
 
+    when "inv", "clearcontainer"
+      # Inventory container update tags — silently ignore, not displayed in main window
+      return
+
     when "root"
       process_nodes(node.children)
 
