@@ -1,9 +1,23 @@
 import React, { useRef, useLayoutEffect, useCallback, useState, memo } from "react";
+import { useHighlights } from "../context/HighlightsContext";
+import { applyHighlights } from "../utils/applyHighlights";
+
+function renderHighlighted(text, highlights) {
+  const parts = applyHighlights(text, highlights);
+  if (!parts) return text;
+  return parts.map((p, i) =>
+    p.color
+      ? <span key={i} style={{ color: p.color }}>{p.text}</span>
+      : <React.Fragment key={i}>{p.text}</React.Fragment>
+  );
+}
 
 // Renders a single game line. memo() means React skips re-rendering this
 // component if the `line` prop reference hasn't changed — which is the common
 // case when the sliding window advances (only the new/removed line changes).
 const GameLine = memo(function GameLine({ line }) {
+  const { highlights } = useHighlights();
+
   if (line.prompt) {
     return <div className="game-line game-line-prompt">{"\u00A0"}</div>;
   }
@@ -26,9 +40,9 @@ const GameLine = memo(function GameLine({ line }) {
           ].filter(Boolean).join(" ");
           const text = needsSpace ? " " + seg.text : seg.text;
           return classes ? (
-            <span key={j} className={classes}>{text}</span>
+            <span key={j} className={classes}>{renderHighlighted(text, highlights)}</span>
           ) : (
-            <span key={j}>{text}</span>
+            <span key={j}>{renderHighlighted(text, highlights)}</span>
           );
         })}
       </div>
@@ -40,7 +54,7 @@ const GameLine = memo(function GameLine({ line }) {
     line.bold && "bold",
     line.mono && "mono",
   ].filter(Boolean).join(" ");
-  return <div className={classes}>{line.text}</div>;
+  return <div className={classes}>{renderHighlighted(line.text, highlights)}</div>;
 });
 
 const GameText = memo(function GameText({ lines, onClick }) {

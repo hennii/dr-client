@@ -1,4 +1,6 @@
 import React, { useRef, useEffect } from "react";
+import { useHighlights } from "../context/HighlightsContext";
+import { applyHighlights } from "../utils/applyHighlights";
 
 // LNet: [Channel]-Game:Player: "message"
 const LNET_RE = /^(\[[^\]]+\]-[^:]+:[^:]+:)\s*(.*)/;
@@ -15,31 +17,44 @@ function formatTime(ts) {
   return `${h}:${m} ${ampm}`;
 }
 
-function ThoughtLine({ text, ts }) {
+function HighlightedText({ text, highlights }) {
+  const parts = applyHighlights(text, highlights);
+  if (!parts) return text;
+  return parts.map((p, i) =>
+    p.color
+      ? <span key={i} style={{ color: p.color }}>{p.text}</span>
+      : <React.Fragment key={i}>{p.text}</React.Fragment>
+  );
+}
+
+function ThoughtLine({ text, ts, highlights }) {
   let match;
   const time = formatTime(ts);
   const timestamp = time ? <span className="thought-timestamp"> [{time}]</span> : null;
   if ((match = text.match(LNET_RE))) {
     return (
       <>
-        <span className="thought-lnet-prefix">{match[1]}</span> {match[2]}{timestamp}
+        <span className="thought-lnet-prefix"><HighlightedText text={match[1]} highlights={highlights} /></span>{" "}
+        <HighlightedText text={match[2]} highlights={highlights} />{timestamp}
       </>
     );
   }
   if ((match = text.match(ESP_RE))) {
     return (
       <>
-        <span className="thought-esp-prefix">{match[1]}</span> {match[2]}{timestamp}
+        <span className="thought-esp-prefix"><HighlightedText text={match[1]} highlights={highlights} /></span>{" "}
+        <HighlightedText text={match[2]} highlights={highlights} />{timestamp}
       </>
     );
   }
-  return <>{text}{timestamp}</>;
+  return <><HighlightedText text={text} highlights={highlights} />{timestamp}</>;
 }
 
 export default function StreamPanel({ title, lines, colorizeThoughts }) {
   const innerRef = useRef(null);
   const scrollElRef = useRef(null);
   const autoScroll = useRef(true);
+  const { highlights } = useHighlights();
 
   // Find the scroll container (the .sidebar-panel-body parent) and listen for user scrolls
   useEffect(() => {
@@ -72,7 +87,9 @@ export default function StreamPanel({ title, lines, colorizeThoughts }) {
         ) : (
           lines.map((line, i) => (
             <div key={i} className="stream-line">
-              {colorizeThoughts ? <ThoughtLine text={line.text} ts={line.ts} /> : line.text}
+              {colorizeThoughts
+                ? <ThoughtLine text={line.text} ts={line.ts} highlights={highlights} />
+                : <HighlightedText text={line.text} highlights={highlights} />}
             </div>
           ))
         )}

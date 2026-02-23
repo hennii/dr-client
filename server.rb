@@ -3,6 +3,7 @@ require "sinatra/base"
 require "faye/websocket"
 require "json"
 require "open3"
+require "fileutils"
 require "dotenv"
 
 Dotenv.load
@@ -134,6 +135,25 @@ class GameApp < Sinatra::Base
         end
       end
     end
+  end
+
+  SETTINGS_FILE = File.join(__dir__, "settings", "highlights.json")
+
+  get "/settings" do
+    content_type :json
+    if File.exist?(SETTINGS_FILE)
+      File.read(SETTINGS_FILE)
+    else
+      { highlights: [] }.to_json
+    end
+  end
+
+  post "/settings" do
+    content_type :json
+    body = JSON.parse(request.body.read)
+    FileUtils.mkdir_p(File.dirname(SETTINGS_FILE))
+    File.write(SETTINGS_FILE, body.to_json)
+    { ok: true }.to_json
   end
 
   def self.boot!

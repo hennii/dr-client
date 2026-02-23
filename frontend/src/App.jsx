@@ -6,6 +6,8 @@ import GameText from "./components/GameText";
 import CommandInput from "./components/CommandInput";
 import { LeftSidebar } from "./components/Sidebar";
 import RightSidebars from "./components/RightSidebars";
+import { HighlightsProvider } from "./context/HighlightsContext";
+import HighlightsModal from "./components/HighlightsModal";
 
 const LAYOUT_KEY = "dr-client-layout";
 const DEFAULT_SIDEBAR_WIDTH = 280;
@@ -34,6 +36,8 @@ export default function App() {
     connected, exp, activeSpells, streams, scriptWindows, roundtime, casttime,
     logStreams, mapZone, mapCurrentNode, mapLevel, send, sendMessage,
   } = useGameSocket();
+
+  const [highlightsOpen, setHighlightsOpen] = useState(false);
 
   const [hiddenPanels, setHiddenPanels] = useState(() => {
     return new Set(loadLayout().hiddenPanels || []);
@@ -126,6 +130,7 @@ export default function App() {
   }, []);
 
   return (
+    <HighlightsProvider>
     <div
       className="app"
       style={{ gridTemplateColumns: `${leftSidebarWidth}px 4px 1fr 4px ${sidebarWidth}px` }}
@@ -138,6 +143,7 @@ export default function App() {
         hiddenPanels={hiddenPanels}
         onTogglePanel={toggleHiddenPanel}
         scriptWindows={scriptWindows}
+        onOpenHighlights={() => setHighlightsOpen(true)}
       />
       <GameText lines={gameLines} onClick={focusInput} />
       <Toolbar
@@ -166,5 +172,7 @@ export default function App() {
         hiddenPanels={hiddenPanels}
       />
     </div>
+    {highlightsOpen && <HighlightsModal onClose={() => setHighlightsOpen(false)} />}
+    </HighlightsProvider>
   );
 }

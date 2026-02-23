@@ -94,6 +94,10 @@ Vite proxies `/ws` to the Sinatra backend automatically. Changes to source files
 
 To build for production: `cd frontend && npm run build`
 
+### Plans
+
+Feature implementation plans are saved as `.md` files in `dr-client/plans/`. When planning a new feature, save the plan there before implementing.
+
 ### Notes
 
 - See `PLAN.md` for the full project plan and phased build order

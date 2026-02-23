@@ -1029,6 +1029,154 @@ html, body, #root {
 
 /* Panel styles */
 
+/* ===== Highlights Modal ===== */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.modal {
+  background: #1e1e2e;
+  border: 1px solid var(--border-hover);
+  border-radius: 8px;
+  padding: 16px;
+  width: 100%;
+  max-width: 480px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.7);
+  font-size: var(--font-sm);
+}
+
+.modal-header {
+  display: flex;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.modal-title {
+  flex: 1;
+  color: var(--text-bright);
+  font-size: var(--font-base);
+}
+
+.modal-close {
+  background: transparent;
+  border: none;
+  color: var(--text-muted);
+  font-size: 20px;
+  line-height: 1;
+  cursor: pointer;
+  padding: 0 4px;
+}
+.modal-close:hover {
+  color: var(--text-primary);
+}
+
+.highlights-empty {
+  color: var(--text-subtle);
+  padding: 8px 0 12px;
+}
+
+.highlights-list {
+  list-style: none;
+  margin-bottom: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.highlights-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.highlight-swatch {
+  display: inline-block;
+  width: 16px;
+  height: 16px;
+  border-radius: 3px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  flex-shrink: 0;
+}
+
+.highlight-text {
+  flex: 1;
+  color: var(--text-primary);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.highlight-delete {
+  background: transparent;
+  border: none;
+  color: var(--text-muted);
+  font-size: 16px;
+  line-height: 1;
+  cursor: pointer;
+  padding: 0 4px;
+  flex-shrink: 0;
+}
+.highlight-delete:hover {
+  color: var(--color-danger);
+}
+
+.highlights-add {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  border-top: 1px solid var(--border);
+  padding-top: 12px;
+}
+
+.highlights-add-input {
+  flex: 1;
+  background: var(--bg-primary);
+  border: 1px solid var(--border-hover);
+  border-radius: 4px;
+  color: var(--text-primary);
+  font-family: inherit;
+  font-size: var(--font-sm);
+  padding: 4px 8px;
+  outline: none;
+  min-width: 0;
+}
+.highlights-add-input:focus {
+  border-color: #8b5cf6;
+}
+
+.highlights-add-color {
+  width: 32px;
+  height: 28px;
+  padding: 2px;
+  border: 1px solid var(--border-hover);
+  border-radius: 4px;
+  background: var(--bg-primary);
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.highlights-add-btn {
+  background: var(--bg-elevated);
+  border: 1px solid var(--border-hover);
+  border-radius: 4px;
+  color: var(--text-primary);
+  font-family: inherit;
+  font-size: var(--font-sm);
+  padding: 4px 12px;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+.highlights-add-btn:hover {
+  background: var(--bg-elevated-hover);
+}
+
+
 .sidebar-panel,
 .panel-bg {
   background: 

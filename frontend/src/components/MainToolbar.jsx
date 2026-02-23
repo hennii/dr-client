@@ -51,11 +51,14 @@ function PanelToggle({ hiddenPanels, onTogglePanel, scriptWindows }) {
   );
 }
 
-export default function MainToolbar({ logStreams, sendMessage, hiddenPanels, onTogglePanel, scriptWindows }) {
+export default function MainToolbar({ logStreams, sendMessage, hiddenPanels, onTogglePanel, scriptWindows, onOpenHighlights }) {
   return (
     <div className="main-toolbar">
       <PanelToggle hiddenPanels={hiddenPanels} onTogglePanel={onTogglePanel} scriptWindows={scriptWindows} />
       <LogToggle logStreams={logStreams} sendMessage={sendMessage} />
+      <button className="toolbar-dropdown-btn" onClick={onOpenHighlights} title="Text highlights">
+        Highlights
+      </button>
     </div>
   );
 }
