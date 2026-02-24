@@ -19,12 +19,13 @@ import RoomPanel from "./RoomPanel";
 import ExpTracker from "./ExpTracker";
 import StreamPanel from "./StreamPanel";
 import MapPanel from "./MapPanel";
+import InventoryPanel from "./InventoryPanel";
 
 const LAYOUT_KEY = "dr-client-layout";
-const DEFAULT_S1_PANELS = ["room", "map", "spells", "arrivals"];
+const DEFAULT_S1_PANELS = ["room", "map", "spells", "arrivals", "inventory"];
 const DEFAULT_S2_PANELS = [];
 const DEFAULT_COLLAPSED = ["spells", "arrivals"];
-const DEFAULT_PANEL_SIZES = { map: 300, spells: 200, arrivals: 200 };
+const DEFAULT_PANEL_SIZES = { map: 300, spells: 200, arrivals: 200, inventory: 300 };
 const DEFAULT_S2_WIDTH = 220;
 const MIN_COL_WIDTH = 150;
 const MAX_COL_WIDTH = 800;
@@ -59,12 +60,13 @@ function ScriptWindowPanel({ lines }) {
 
 function renderPanelContent(id, props) {
   switch (id) {
-    case "room":    return <RoomPanel room={props.room} />;
-    case "map":     return <MapPanel zone={props.mapZone} currentNode={props.mapCurrentNode} level={props.mapLevel} />;
-    case "exp":     return <ExpTracker exp={props.exp} />;
-    case "thoughts":return <StreamPanel title="Thoughts" lines={props.streams.thoughts || []} colorizeThoughts />;
-    case "arrivals":return <StreamPanel title="Arrivals" lines={props.streams.logons || []} />;
-    case "spells":  return (
+    case "room":      return <RoomPanel room={props.room} />;
+    case "map":       return <MapPanel zone={props.mapZone} currentNode={props.mapCurrentNode} level={props.mapLevel} />;
+    case "exp":       return <ExpTracker exp={props.exp} />;
+    case "thoughts":  return <StreamPanel title="Thoughts" lines={props.streams.thoughts || []} colorizeThoughts />;
+    case "arrivals":  return <StreamPanel title="Arrivals" lines={props.streams.logons || []} />;
+    case "inventory": return <InventoryPanel inventory={props.inventory} roundtime={props.roundtime} send={props.send} />;
+    case "spells":    return (
       <div className="active-spells-text">
         {props.activeSpells
           ? props.activeSpells.split("\n").map((line, i) => <div key={i}>{line}</div>)
@@ -83,12 +85,13 @@ function renderPanelContent(id, props) {
 
 function getPanelTitle(id, scriptWindows) {
   switch (id) {
-    case "room":    return "Room";
-    case "map":     return "Map";
-    case "exp":     return "Experience";
-    case "thoughts":return "Thoughts";
-    case "arrivals":return "Arrivals";
-    case "spells":  return "Active Spells";
+    case "room":      return "Room";
+    case "map":       return "Map";
+    case "exp":       return "Experience";
+    case "thoughts":  return "Thoughts";
+    case "arrivals":  return "Arrivals";
+    case "spells":    return "Active Spells";
+    case "inventory": return "Inventory";
     default:
       if (id.startsWith("script:")) {
         const name = id.slice(7);
@@ -169,6 +172,7 @@ function SidebarColumn({ columnId, panelIds, collapsedPanels, panelSizes, onTogg
 const RightSidebars = memo(function RightSidebars({
   room, exp, streams, activeSpells, compass, scriptWindows,
   onMove, mapZone, mapCurrentNode, mapLevel, hiddenPanels = new Set(),
+  inventory, roundtime, send,
 }) {
   // s1 = outer (original) sidebar. Reads legacy panelOrder key for back-compat.
   const [s1Panels, setS1Panels] = useState(() => {
@@ -324,7 +328,7 @@ const RightSidebars = memo(function RightSidebars({
   }, []);
 
   // ── Render ───────────────────────────────────────────────────────────────
-  const contentProps = { room, exp, streams, activeSpells, compass, scriptWindows, onMove, mapZone, mapCurrentNode, mapLevel };
+  const contentProps = { room, exp, streams, activeSpells, compass, scriptWindows, onMove, mapZone, mapCurrentNode, mapLevel, inventory, roundtime, send };
 
   return (
     <div ref={containerRef} className="right-sidebars">

@@ -40,6 +40,7 @@ const initialState = {
   mapZone: null,
   mapCurrentNode: null,
   mapLevel: 0,
+  inventory: { worn: [], lastFullRefresh: null },
 };
 
 function appendLines(existing, newLine, max) {
@@ -106,6 +107,10 @@ function reducer(state, action) {
         casttime: action.state.casttime || null,
         exp: action.state.exp || {},
         activeSpells: action.state.active_spells || "",
+        inventory: {
+          worn: action.state.inventory?.worn || [],
+          lastFullRefresh: action.state.inventory?.last_full_refresh || null,
+        },
       };
     case "text": {
       const seg = {
@@ -327,6 +332,36 @@ function reducer(state, action) {
         mapCurrentNode: action.current_node,
         mapLevel: action.level,
       };
+    case "inventory_worn": {
+      // Rebuild worn list from names, preserving known container contents for matching items.
+      const existingMap = new Map(state.inventory.worn.map((i) => [i.name, i]));
+      const newWorn = (action.items || []).map((name) => existingMap.get(name) || { name, items: null });
+      return { ...state, inventory: { ...state.inventory, worn: newWorn } };
+    }
+    case "inventory_full":
+      return {
+        ...state,
+        inventory: {
+          worn: action.tree || [],
+          lastFullRefresh: action.last_full_refresh || null,
+        },
+      };
+    case "inventory_container": {
+      const stripArticle = (name) => name.replace(/^(a|an|some|the) /i, "");
+      function updateContainer(items, target, newItems) {
+        return items.map((item) => {
+          if (stripArticle(item.name) === target) {
+            return { ...item, items: newItems.map((n) => ({ name: n, items: null })) };
+          }
+          if (item.items && item.items.length > 0) {
+            return { ...item, items: updateContainer(item.items, target, newItems) };
+          }
+          return item;
+        });
+      }
+      const newWorn = updateContainer(state.inventory.worn, action.container, action.items || []);
+      return { ...state, inventory: { ...state.inventory, worn: newWorn } };
+    }
     case "batch":
       return action.events.reduce(reducer, state);
     default:
@@ -479,6 +514,7 @@ export function useGameSocket() {
     mapZone: state.mapZone,
     mapCurrentNode: state.mapCurrentNode,
     mapLevel: state.mapLevel,
+    inventory: state.inventory,
     send,
     sendMessage,
   };

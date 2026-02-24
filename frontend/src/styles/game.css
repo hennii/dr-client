@@ -809,6 +809,113 @@ html, body, #root {
   color: var(--text-subtle);
 }
 
+/* Inventory panel */
+.inventory-panel {
+  display: flex;
+  flex-direction: column;
+  font-size: var(--font-xs);
+  line-height: 1.4;
+}
+.inv-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 0 6px;
+  border-bottom: 1px solid var(--border);
+  margin-bottom: 4px;
+}
+.inv-refresh-all-btn {
+  background: var(--bg-elevated);
+  border: 1px solid var(--border-subtle);
+  color: var(--text-secondary);
+  font-size: var(--font-xxs);
+  font-family: inherit;
+  padding: 2px 7px;
+  border-radius: 3px;
+  cursor: pointer;
+  transition: background 0.1s, border-color 0.1s;
+}
+.inv-refresh-all-btn:hover:not(:disabled) {
+  background: var(--bg-elevated-hover);
+  border-color: var(--border-hover);
+  color: var(--text-primary);
+}
+.inv-refresh-all-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+.inv-last-refresh {
+  color: var(--text-muted);
+  font-size: var(--font-xxs);
+}
+.inv-list {
+  flex: 1;
+  overflow-y: auto;
+}
+.inv-item-row {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 1px 0;
+}
+.inv-item-row:hover {
+  background: rgba(255,255,255,0.03);
+}
+.inv-toggle-btn {
+  background: none;
+  border: none;
+  color: var(--text-subtle);
+  font-size: var(--font-xxxs);
+  cursor: pointer;
+  padding: 0;
+  width: 12px;
+  flex-shrink: 0;
+  line-height: 1;
+}
+.inv-toggle-btn:hover {
+  color: var(--text-secondary);
+}
+.inv-toggle-placeholder {
+  display: inline-block;
+  width: 12px;
+  flex-shrink: 0;
+}
+.inv-item-name {
+  color: var(--text-primary);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.inv-refresh-btn {
+  background: none;
+  border: none;
+  color: var(--text-ghost);
+  font-size: var(--font-xs);
+  cursor: pointer;
+  padding: 0 2px;
+  opacity: 0;
+  transition: opacity 0.1s, color 0.1s;
+  flex-shrink: 0;
+  line-height: 1;
+}
+.inv-item-row:hover .inv-refresh-btn {
+  opacity: 1;
+}
+.inv-refresh-btn:hover {
+  color: var(--text-secondary);
+}
+.inv-empty-container {
+  color: var(--text-muted);
+  font-style: italic;
+  font-size: var(--font-xxs);
+  padding: 1px 0;
+}
+.inv-empty-state {
+  color: var(--text-muted);
+  font-style: italic;
+  padding: 4px 0;
+}
+
 /* Active spells */
 .active-spells-text {
   color: var(--text-secondary);

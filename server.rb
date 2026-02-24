@@ -192,14 +192,35 @@ class GameApp < Sinatra::Base
     @@map_service = MapService.new(maps_dir)
 
     parser = XmlParser.new
+    initial_inv_sent = false
+    autostart_done = false
+    first_prompt_at = nil
     parser.on_event = ->(event) do
-      @@game_state.update(event)
+      derived = @@game_state.update(event)
       @@log_service.log_event(event)
       broadcast(event)
+      derived.each { |e| broadcast(e) }
 
       if event[:type] == "compass"
         map_event = @@map_service.update(@@game_state.snapshot)
         broadcast(map_event) if map_event
+      end
+
+      # Detect Lich autostart completion so we don't collide with startup scripts.
+      if event[:type] == "text" && event[:text]&.include?("autostart has exited")
+        autostart_done = true
+      end
+
+      if event[:type] == "prompt" && !initial_inv_sent
+        first_prompt_at ||= Time.now
+        # Wait until autostart is done (or 90s have elapsed as a fallback),
+        # and there's no active roundtime.
+        elapsed = Time.now - first_prompt_at
+        state = @@game_state.snapshot
+        if (autostart_done || elapsed >= 90) && (state[:roundtime].nil? || state[:roundtime] == 0)
+          @@game_connection.send_command("inv list")
+          initial_inv_sent = true
+        end
       end
     end
     parser.on_raw_line = ->(line) { @@log_service.log_raw(line) }

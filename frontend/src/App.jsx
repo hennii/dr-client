@@ -34,7 +34,7 @@ export default function App() {
   const {
     gameLines, vitals, room, compass, hands, spell, indicators,
     connected, exp, activeSpells, streams, scriptWindows, roundtime, casttime,
-    logStreams, mapZone, mapCurrentNode, mapLevel, send, sendMessage,
+    logStreams, mapZone, mapCurrentNode, mapLevel, inventory, send, sendMessage,
   } = useGameSocket();
 
   const [highlightsOpen, setHighlightsOpen] = useState(false);
@@ -170,6 +170,9 @@ export default function App() {
         mapCurrentNode={mapCurrentNode}
         mapLevel={mapLevel}
         hiddenPanels={hiddenPanels}
+        inventory={inventory}
+        roundtime={roundtime}
+        send={send}
       />
     </div>
     {highlightsOpen && <HighlightsModal onClose={() => setHighlightsOpen(false)} />}
