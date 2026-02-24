@@ -813,8 +813,9 @@ html, body, #root {
 .inventory-panel {
   display: flex;
   flex-direction: column;
-  font-size: var(--font-xs);
+  font-size: var(--font-sm);
   line-height: 1.4;
+  background-color: #0f1223;
 }
 .inv-toolbar {
   display: flex;
@@ -838,7 +839,7 @@ html, body, #root {
 .inv-refresh-all-btn:hover:not(:disabled) {
   background: var(--bg-elevated-hover);
   border-color: var(--border-hover);
-  color: var(--text-primary);
+  color: var(--color-players);
 }
 .inv-refresh-all-btn:disabled {
   opacity: 0.4;
@@ -856,7 +857,7 @@ html, body, #root {
   display: flex;
   align-items: center;
   gap: 4px;
-  padding: 1px 0;
+  padding: 0.15em 0;
 }
 .inv-item-row:hover {
   background: rgba(255,255,255,0.03);
@@ -890,19 +891,23 @@ html, body, #root {
   background: none;
   border: none;
   color: var(--text-ghost);
-  font-size: var(--font-xs);
+  font-size: var(--font-base);
   cursor: pointer;
   padding: 0 2px;
   opacity: 0;
   transition: opacity 0.1s, color 0.1s;
   flex-shrink: 0;
   line-height: 1;
+  cursor: pointer;
 }
+.inv-list > div.inv-item:nth-child(even) {
+  background-color: #1d2237;
+} 
 .inv-item-row:hover .inv-refresh-btn {
   opacity: 1;
 }
 .inv-refresh-btn:hover {
-  color: var(--text-secondary);
+  color: var(--color-players);
 }
 .inv-empty-container {
   color: var(--text-muted);
