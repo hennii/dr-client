@@ -40,15 +40,46 @@ dr-client/
 │   ├── xml_parser.rb      # Parses DR's XML stream into structured events
 │   ├── game_state.rb      # Thread-safe in-memory game state
 │   ├── script_api.rb      # ScriptApiServer (TCP, Frostbite-compatible)
-│   └── lich_launcher.rb   # Spawns Lich as child process
+│   ├── lich_launcher.rb   # Spawns Lich as child process
+│   ├── log_service.rb     # Writes main/raw/thoughts logs per character
+│   └── map_service.rb     # Serves map zone/node data to frontend
 ├── frontend/
 │   ├── src/
 │   │   ├── App.jsx
-│   │   ├── hooks/         # useGameSocket.js etc.
-│   │   ├── components/    # GameText, CommandInput, VitalsBar, etc.
+│   │   ├── main.jsx
+│   │   ├── hooks/
+│   │   │   └── useGameSocket.js     # WebSocket connection, all game state via useReducer
+│   │   ├── context/
+│   │   │   └── HighlightsContext.jsx  # Text highlight rules, shared via context
+│   │   ├── components/
+│   │   │   ├── CommandInput.jsx     # Text input with history and insertAtCursor
+│   │   │   ├── Compass.jsx          # Directional exits
+│   │   │   ├── ExpTracker.jsx       # Experience panel
+│   │   │   ├── GameText.jsx         # Main scrolling game text
+│   │   │   ├── HandsDisplay.jsx     # Left/right hand contents
+│   │   │   ├── HighlightsModal.jsx  # Highlight rule editor
+│   │   │   ├── InventoryPanel.jsx   # Worn items and containers
+│   │   │   ├── LogToggle.jsx        # Enable/disable stream logging
+│   │   │   ├── MainToolbar.jsx      # Top toolbar (panels, highlights, etc.)
+│   │   │   ├── MapPanel.jsx         # Zone map display
+│   │   │   ├── RightSidebars.jsx    # Two-column resizable/draggable right sidebar
+│   │   │   ├── RoomPanel.jsx        # Room title, objs, players (clickable), exits
+│   │   │   ├── Sidebar.jsx          # Left sidebar with draggable panels
+│   │   │   ├── SpellDisplay.jsx     # Active spell name
+│   │   │   ├── StatusIndicators.jsx # Stance, kneeling, prone, etc.
+│   │   │   ├── StreamPanel.jsx      # Generic stream window (thoughts, arrivals, etc.)
+│   │   │   ├── Toolbar.jsx          # Vitals bar + hands + compass row
+│   │   │   └── VitalsBar.jsx        # Health/mana/stamina/spirit bars
+│   │   ├── utils/
+│   │   │   └── applyHighlights.js   # Applies highlight rules to game text HTML
 │   │   └── styles/
+│   │       └── game.css
 │   ├── vite.config.js
 │   └── package.json
+├── settings/
+│   └── highlights.json    # Persisted highlight rules and presets
+├── logs/                  # Per-character dated log files (main, raw, thoughts)
+├── plans/                 # Feature implementation plans (.md files)
 ├── PLAN.md                # Detailed project plan with build phases
 └── CLAUDE.md              # This file
 ```

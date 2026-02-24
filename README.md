@@ -61,14 +61,42 @@ dr-client/
 │   ├── xml_parser.rb      # Parses DR's XML stream into structured events
 │   ├── game_state.rb      # Thread-safe in-memory game state
 │   ├── script_api.rb      # ScriptApiServer (TCP, Frostbite-compatible)
-│   └── lich_launcher.rb   # Spawns Lich as child process
+│   ├── lich_launcher.rb   # Spawns Lich as child process
+│   ├── log_service.rb     # Per-character log files (main, raw, thoughts)
+│   └── map_service.rb     # Serves map zone/node data
 ├── frontend/
 │   ├── src/
 │   │   ├── App.jsx
-│   │   ├── hooks/         # useGameSocket.js etc.
-│   │   ├── components/    # GameText, CommandInput, Sidebar, etc.
+│   │   ├── hooks/
+│   │   │   └── useGameSocket.js       # WebSocket + all game state
+│   │   ├── context/
+│   │   │   └── HighlightsContext.jsx  # Text highlight rules
+│   │   ├── components/
+│   │   │   ├── CommandInput.jsx       # Text input with history
+│   │   │   ├── Compass.jsx
+│   │   │   ├── ExpTracker.jsx
+│   │   │   ├── GameText.jsx           # Main scrolling game text
+│   │   │   ├── HandsDisplay.jsx
+│   │   │   ├── HighlightsModal.jsx
+│   │   │   ├── InventoryPanel.jsx
+│   │   │   ├── LogToggle.jsx
+│   │   │   ├── MainToolbar.jsx
+│   │   │   ├── MapPanel.jsx
+│   │   │   ├── RightSidebars.jsx      # Two-column draggable sidebar
+│   │   │   ├── RoomPanel.jsx          # Room info with clickable player names
+│   │   │   ├── Sidebar.jsx            # Left sidebar
+│   │   │   ├── SpellDisplay.jsx
+│   │   │   ├── StatusIndicators.jsx
+│   │   │   ├── StreamPanel.jsx        # Thoughts, arrivals, etc.
+│   │   │   ├── Toolbar.jsx
+│   │   │   └── VitalsBar.jsx
+│   │   ├── utils/
+│   │   │   └── applyHighlights.js
 │   │   └── styles/
+│   │       └── game.css
 │   ├── vite.config.js
 │   └── package.json
-└── CLAUDE.md
+├── settings/
+│   └── highlights.json    # Persisted highlight rules
+└── logs/                  # Per-character dated log files
 ```
