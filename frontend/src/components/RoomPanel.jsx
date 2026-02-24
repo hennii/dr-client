@@ -43,7 +43,7 @@ function renderPlayers(html, onInsertText) {
             {part.titlePrefix && part.titlePrefix + " "}
             <span
               className="room-player-name"
-              onClick={() => onInsertText(part.name)}
+              onClick={() => { onInsertText(part.name); navigator.clipboard.writeText(part.name); }}
             >{part.name}</span>
           </span>
         )
