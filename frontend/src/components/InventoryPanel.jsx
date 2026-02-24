@@ -14,10 +14,17 @@ function stripArticle(name) {
   return name.replace(/^(a|an|some|the) /i, "");
 }
 
+// Words that begin a modifying phrase in DR item descriptions.
+// Everything from the first match onward is stripped before extracting the noun.
+const MODIFIER_RE = /\b(with|fashioned|crafted|laced|studded|threaded|wrapped|adorned|decorated|etched|engraved|painted|inlaid|outlined|trimmed|reinforced|embossed|bearing|carved|made)\b/i;
+
 // Derive the keyword to use in an "inv <keyword>" command from an item name.
-// Uses the last word of the stripped name as the most specific identifier.
+// Strips the article, parenthetical annotations, modifier phrases, then takes the last word.
 function invKeyword(name) {
-  return stripArticle(name).split(" ").pop();
+  let base = stripArticle(name).replace(/\s*\([^)]*\)/g, "").trim();
+  const idx = base.search(MODIFIER_RE);
+  if (idx > 0) base = base.slice(0, idx).trim();
+  return base.split(" ").pop();
 }
 
 function InventoryItem({ item, depth, onRefresh, collapsed, onToggle }) {
