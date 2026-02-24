@@ -53,8 +53,12 @@ export default function App() {
   }, []);
 
   const inputRef = useRef(null);
+  const insertTextRef = useRef(null);
   const focusInput = useCallback(() => {
     inputRef.current?.focus();
+  }, []);
+  const handleInsertText = useCallback((text) => {
+    insertTextRef.current?.(text);
   }, []);
 
   const [sidebarWidth, setSidebarWidth] = useState(() => {
@@ -156,7 +160,7 @@ export default function App() {
         compass={compass}
         onMove={send}
       />
-      <CommandInput onSend={send} inputRef={inputRef} />
+      <CommandInput onSend={send} inputRef={inputRef} insertTextRef={insertTextRef} />
       <div className="sidebar-divider" onMouseDown={onDividerMouseDown} />
       <RightSidebars
         room={room}
@@ -173,6 +177,7 @@ export default function App() {
         inventory={inventory}
         roundtime={roundtime}
         send={send}
+        onInsertText={handleInsertText}
       />
     </div>
     {highlightsOpen && <HighlightsModal onClose={() => setHighlightsOpen(false)} />}

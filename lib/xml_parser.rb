@@ -181,9 +181,11 @@ class XmlParser
       process_nodes(node.children)
 
     when "b"
+      flush_text unless @text_buffer.empty?
       old_bold = @bold
       @bold = true
       process_nodes(node.children)
+      flush_text unless @text_buffer.empty?
       @bold = old_bold
 
     when "d"

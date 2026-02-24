@@ -617,6 +617,15 @@ html, body, #root {
   margin-top: 3px;
   color: var(--color-players);
 }
+.room-player-name {
+  cursor: pointer;
+  text-decoration: underline;
+  text-decoration-style: dotted;
+  text-underline-offset: 2px;
+}
+.room-player-name:hover {
+  text-decoration-style: solid;
+}
 .room-section-label {
   color: var(--text-faint);
 }

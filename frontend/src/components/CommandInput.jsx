@@ -1,11 +1,36 @@
 import React, { useState, useRef, useCallback, useEffect } from "react";
 
-export default function CommandInput({ onSend, inputRef: externalRef }) {
+export default function CommandInput({ onSend, inputRef: externalRef, insertTextRef }) {
   const [value, setValue] = useState("");
   const [history, setHistory] = useState([]);
   const [historyIndex, setHistoryIndex] = useState(-1);
   const localRef = useRef(null);
   const inputRef = externalRef || localRef;
+  const pendingCursor = useRef(null);
+
+  const insertAtCursor = useCallback((text) => {
+    const el = inputRef.current;
+    const start = el ? (el.selectionStart ?? value.length) : value.length;
+    const end = el ? (el.selectionEnd ?? value.length) : value.length;
+    setValue(value.slice(0, start) + text + value.slice(end));
+    pendingCursor.current = start + text.length;
+  }, [value, inputRef]);
+
+  useEffect(() => {
+    if (insertTextRef) insertTextRef.current = insertAtCursor;
+  }, [insertTextRef, insertAtCursor]);
+
+  useEffect(() => {
+    if (pendingCursor.current !== null) {
+      const cursor = pendingCursor.current;
+      pendingCursor.current = null;
+      const el = inputRef.current;
+      if (el) {
+        el.focus();
+        el.setSelectionRange(cursor, cursor);
+      }
+    }
+  });
 
   const handleKeyDown = useCallback(
     (e) => {
