@@ -1,4 +1,4 @@
-import React, { useMemo } from "react";
+import React, { useMemo, useState, useEffect, useRef } from "react";
 
 const LEARNING_COLORS = {
   "clear": "#666666",        //  0 - gray
@@ -138,12 +138,42 @@ function formatFutureTime(minutesToAdd) {
   return `${timeString} ${isTomorrow ? "tomorrow" : "today"}`;
 }
 
-export default function ExpTracker({ exp }) {
+const BASELINE_KEY = 'dr-exp-baseline';
+
+function loadBaseline() {
+  try { return JSON.parse(localStorage.getItem(BASELINE_KEY)); } catch { return null; }
+}
+
+function saveBaseline(b) {
+  try { localStorage.setItem(BASELINE_KEY, JSON.stringify(b)); } catch {}
+}
+
+function formatLearningTime(hours) {
+  const h = Math.floor(hours);
+  const m = Math.round((hours - h) * 60);
+  if (h === 0) return `${m}m`;
+  if (m === 0) return `${h}h`;
+  return `${h}h ${m}m`;
+}
+
+export default function ExpTracker({ exp, send }) {
+  const [activeTab, setActiveTab] = useState('current');
+  const [baseline, setBaseline] = useState(() => loadBaseline());
+  const [resetting, setResetting] = useState(false);
+  const didAutoInit = useRef(false);
+  const learningHoursRef = useRef(0);
+  const lastLearningHoursUpdate = useRef(0);
+  const resetTimerRef = useRef(null);
+  const skillsRef = useRef(null);
+  const lastKnownRef = useRef({});
+
   const skills = useMemo(() => {
     return Object.entries(exp)
       .filter(([, data]) => data.rank != null)
       .sort(([a], [b]) => a.localeCompare(b));
   }, [exp]);
+  skillsRef.current = skills;
+  skills.forEach(([name, data]) => { lastKnownRef.current[name] = data; });
 
   const summaryData = useMemo(() => {
     return exp.rexp ? parseRestedExp(exp.rexp.text) : null;
@@ -167,67 +197,227 @@ export default function ExpTracker({ exp }) {
   const sleepMsg = exp.sleep ? parseSleep(exp.sleep.text) : null;
   const isAsleep = sleepMsg === fullyAsleepMsg;
 
+  useEffect(() => {
+    if (!didAutoInit.current && !baseline && skills.length > 0) {
+      didAutoInit.current = true;
+      const b = {
+        time: Date.now(),
+        skills: Object.fromEntries(skills.map(([n, d]) => [n, { rank: d.rank, percent: d.percent || 0 }]))
+      };
+      saveBaseline(b);
+      setBaseline(b);
+    }
+  }, [baseline, skills]);
+
+  // Patch baseline when skills arrive that weren't present at init time
+  useEffect(() => {
+    if (!baseline) return;
+    const newSkills = skills.filter(([name]) => !baseline.skills[name]);
+    if (newSkills.length === 0) return;
+    const updated = {
+      ...baseline,
+      skills: {
+        ...baseline.skills,
+        ...Object.fromEntries(newSkills.map(([n, d]) => [n, { rank: d.rank, percent: d.percent || 0 }]))
+      }
+    };
+    saveBaseline(updated);
+    setBaseline(updated);
+  }, [skills, baseline]);
+
+  const now = Date.now();
+  if (!baseline) {
+    learningHoursRef.current = 0;
+    lastLearningHoursUpdate.current = 0;
+  } else if (now - lastLearningHoursUpdate.current >= 15000) {
+    learningHoursRef.current = Math.max((now - baseline.time) / 3600000, 1 / 60);
+    lastLearningHoursUpdate.current = now;
+  }
+  const learningHours = learningHoursRef.current;
+
+  const learnedSkills = useMemo(() => {
+    if (!baseline) return [];
+    return Object.keys(baseline.skills)
+      .map((name) => {
+        const base = baseline.skills[name];
+        const data = lastKnownRef.current[name];
+        if (!data || data.rank == null) return null;
+        const gained = (data.rank + (data.percent || 0) / 100) - (base.rank + base.percent / 100);
+        if (gained <= 0) return null;
+        return { name, gained, currentRank: data.rank };
+      })
+      .filter(Boolean)
+      .sort((a, b) => b.gained - a.gained);
+  }, [skills, baseline]);
+
+  const learnedTotals = useMemo(() => {
+    const totalGained = learnedSkills.reduce((s, k) => s + k.gained, 0);
+    const totalTdps   = learnedSkills.reduce((s, k) => s + (k.gained * k.currentRank / 200), 0);
+    return {
+      gained:      totalGained,
+      perHour:     learningHours > 0 ? totalGained / learningHours : 0,
+      perDay:      learningHours > 0 ? totalGained / learningHours * 24 : 0,
+      tdps:        totalTdps,
+      tdpsPerHour: learningHours > 0 ? totalTdps / learningHours : 0,
+      tdpsPerDay:  learningHours > 0 ? totalTdps / learningHours * 24 : 0,
+    };
+  }, [learnedSkills, learningHours]);
+
+  useEffect(() => {
+    return () => clearTimeout(resetTimerRef.current);
+  }, []);
+
+  function handleReset() {
+    // Immediately baseline current skills so gains clear right away (no "appear then drop" flash)
+    const snapSkills = (s) => Object.fromEntries(s.map(([n, d]) => [n, { rank: d.rank, percent: d.percent || 0 }]));
+    const immediate = { time: Date.now(), skills: snapSkills(skillsRef.current) };
+    saveBaseline(immediate);
+    setBaseline(immediate);
+
+    // Send exp to flush all skill data, then add any skills that weren't in the immediate snapshot
+    if (send) send('exp');
+    setResetting(true);
+    clearTimeout(resetTimerRef.current);
+    resetTimerRef.current = setTimeout(() => {
+      setBaseline((current) => {
+        const newSkills = skillsRef.current.filter(([name]) => !current.skills[name]);
+        if (newSkills.length === 0) {
+          setResetting(false);
+          return current;
+        }
+        const b = {
+          ...current,
+          skills: { ...current.skills, ...snapSkills(newSkills) },
+        };
+        saveBaseline(b);
+        setResetting(false);
+        return b;
+      });
+    }, 1500);
+  }
+
   if (skills.length === 0) {
     return <div className="exp-tracker exp-empty">No skills tracked yet</div>;
   }
 
   return (
     <div className={`exp-tracker ${isAsleep ? 'asleep' : ''}`}>
-      <table className="exp-table">
-        <thead>
-          <tr>
-            <th>Skill</th>
-            <th className="text-align-center">Rank</th>
-            <th>Mindstate</th>
-            <th></th>
-          </tr>
-        </thead>
-        <tbody>
-          {skills.map(([name, data]) => (
-            <tr key={name}>
-              <td className="exp-skill">{name}</td>
-              <td className="exp-rank">
-                <div className="exp-whole">{data.rank}</div>
-                <div className="exp-pct">{data.percent}%</div>
-              </td>
-              <td
-                className="exp-state"
-                style={{ color: learningColor(data.state) }}
-              >
-                {data.state || "-"}
-              </td>
-              <td className="exp-mindstate" style={{ color: learningColor(data.state) }}>{mindstateLabel(data.state)}</td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
-      <div className="exp-summary">
-        <div className="exp-total">Total skills: {skills.length}</div>
-        <div className="exp-rexp">
-          <div className="exp-rexp-title">Rested Experience</div>
-          {!isAsleep && rexpCalc && (
-            <div>
-              {rexpCalc.duration > 0 ? (
-                <div className="exp-rexp-summary on">
-                  Using REXP for the next {rexpCalc.durationMsg}
-                  {rexpCalc.endTime && <div>(ending at {rexpCalc.endTime})</div>}
-                </div>
-              ) : (
-                <div className="exp-rexp-summary off">
-                  Not currently using REXP
-                  {rexpCalc.storedAndWaiting && (
-                    <span> (restarting at {formatFutureTime(toMinutes(summaryData.refreshes))})</span>
+      <div className="exp-tabs">
+        <button
+          className={`exp-tab-btn${activeTab === 'current' ? ' active' : ''}`}
+          onClick={() => setActiveTab('current')}
+        >Current</button>
+        <button
+          className={`exp-tab-btn${activeTab === 'learned' ? ' active' : ''}`}
+          onClick={() => setActiveTab('learned')}
+        >Learned</button>
+      </div>
+
+      {activeTab === 'current' && (
+        <>
+          <table className="exp-table">
+            <thead>
+              <tr>
+                <th>Skill</th>
+                <th className="text-align-center">Rank</th>
+                <th>Mindstate</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody>
+              {skills.map(([name, data]) => (
+                <tr key={name}>
+                  <td className="exp-skill">{name}</td>
+                  <td className="exp-rank">
+                    <div className="exp-whole">{data.rank}</div>
+                    <div className="exp-pct">{data.percent}%</div>
+                  </td>
+                  <td
+                    className="exp-state"
+                    style={{ color: learningColor(data.state) }}
+                  >
+                    {data.state || "-"}
+                  </td>
+                  <td className="exp-mindstate" style={{ color: learningColor(data.state) }}>{mindstateLabel(data.state)}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+          <div className="exp-summary">
+            <div className="exp-total">Total skills: {skills.length}</div>
+            <div className="exp-rexp">
+              <div className="exp-rexp-title">Rested Experience</div>
+              {!isAsleep && rexpCalc && (
+                <div>
+                  {rexpCalc.duration > 0 ? (
+                    <div className="exp-rexp-summary on">
+                      Using REXP for the next {rexpCalc.durationMsg}
+                      {rexpCalc.endTime && <div>(ending at {rexpCalc.endTime})</div>}
+                    </div>
+                  ) : (
+                    <div className="exp-rexp-summary off">
+                      Not currently using REXP
+                      {rexpCalc.storedAndWaiting && (
+                        <span> (restarting at {formatFutureTime(toMinutes(summaryData.refreshes))})</span>
+                      )}
+                    </div>
                   )}
+                  <div className="exp-stored">Stored: &nbsp;&nbsp;&nbsp;{summaryData.rexp}</div>
+                  <div className="exp-usable">Usable: &nbsp;&nbsp;&nbsp;{summaryData.usable}</div>
+                  <div className="exp-refreshes">Refreshes: {summaryData.refreshes}</div>
                 </div>
               )}
-              <div className="exp-stored">Stored: &nbsp;&nbsp;&nbsp;{summaryData.rexp}</div>
-              <div className="exp-usable">Usable: &nbsp;&nbsp;&nbsp;{summaryData.usable}</div>
-              <div className="exp-refreshes">Refreshes: {summaryData.refreshes}</div>
+              {sleepMsg && <div className="exp-sleep">{sleepMsg}</div>}
+            </div>
+          </div>
+        </>
+      )}
+
+      {activeTab === 'learned' && (
+        <div className="learned-view">
+          {!baseline && <div className="learned-empty">Waiting for skill data...</div>}
+          {baseline && learnedSkills.length === 0 && (
+            <div className="learned-empty">No exp gained yet since tracking started.</div>
+          )}
+          {learnedSkills.length > 0 && (
+            <table className="learned-table">
+              <thead>
+                <tr>
+                  <th>Skill</th>
+                  <th>Gained</th>
+                  <th>/hr</th>
+                  <th>/day</th>
+                </tr>
+              </thead>
+              <tbody>
+                {learnedSkills.map(({ name, gained, currentRank }) => (
+                  <tr key={name}>
+                    <td className="learned-skill">{name}</td>
+                    <td className="learned-val">{gained.toFixed(2)}</td>
+                    <td className="learned-val">{(gained / learningHours).toFixed(2)}</td>
+                    <td className="learned-val">{(gained / learningHours * 24).toFixed(2)}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          )}
+          {learnedSkills.length > 0 && (
+            <div className="learned-totals">
+              <div>Skills count: {learnedSkills.length}</div>
+              <div>Total Ranks: {learnedTotals.gained.toFixed(2)}  /hr: {learnedTotals.perHour.toFixed(2)}  /day: {learnedTotals.perDay.toFixed(2)}</div>
+              <div>Total TDPs:  {learnedTotals.tdps.toFixed(2)}  /hr: {learnedTotals.tdpsPerHour.toFixed(2)}  /day: {learnedTotals.tdpsPerDay.toFixed(2)}</div>
             </div>
           )}
-          {sleepMsg && <div className="exp-sleep">{sleepMsg}</div>}
+          <div className="learned-footer">
+            <span className="learned-time-label">
+              Learning For: {formatLearningTime(learningHours)}
+            </span>
+            <button className="learned-btn" onClick={handleReset} disabled={resetting}>
+              {resetting ? 'Refreshing...' : 'Reset'}
+            </button>
+          </div>
         </div>
-      </div>
+      )}
     </div>
   );
 }

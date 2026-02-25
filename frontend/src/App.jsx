@@ -158,7 +158,7 @@ export default function App() {
       className="app"
       style={{ gridTemplateColumns: `${leftSidebarWidth}px 4px 1fr 4px ${sidebarWidth}px` }}
     >
-      <LeftSidebar exp={exp} streams={streams} />
+      <LeftSidebar exp={exp} streams={streams} send={send} />
       <div className="left-sidebar-divider" onMouseDown={onLeftDividerMouseDown} />
       <MainToolbar
         logStreams={logStreams}

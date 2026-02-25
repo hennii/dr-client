@@ -795,6 +795,94 @@ html, body, #root {
   padding-bottom: 1em;
 }
 
+/* Exp panel tabs */
+.exp-tabs {
+  display: flex;
+  border-bottom: 1px solid var(--border);
+  margin-bottom: 4px;
+}
+.exp-tab-btn {
+  flex: 1;
+  background: none;
+  border: none;
+  color: var(--text-dim);
+  font-family: inherit;
+  font-size: var(--font-sm);
+  padding: 4px 8px;
+  cursor: pointer;
+  border-bottom: 2px solid transparent;
+  margin-bottom: -1px;
+}
+.exp-tab-btn:hover { color: var(--text-primary); }
+.exp-tab-btn.active {
+  color: var(--text-bright);
+  border-bottom-color: var(--color-players);
+}
+
+/* Learned tab */
+.learned-view {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.learned-empty {
+  color: var(--text-subtle);
+  padding: 4px;
+}
+.learned-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: var(--font-sm);
+}
+.learned-table th {
+  text-align: left;
+  color: var(--text-faint);
+  padding: 2px 4px;
+  border-bottom: 1px solid var(--border);
+  position: sticky;
+  top: 0;
+  background: var(--bg-surface);
+}
+.learned-table th:not(:first-child) {
+  text-align: right;
+}
+.learned-table tr:nth-of-type(even) { background-color: #3a3a3a; }
+.learned-table td { padding: 1px 4px; }
+.learned-skill { color: var(--text-skill); }
+.learned-val {
+  color: var(--text-secondary);
+  text-align: right;
+}
+.learned-totals {
+  margin-top: 8px;
+  padding: 4px;
+  background: var(--bg-toolbar);
+  border-radius: 4px;
+  color: var(--text-secondary);
+  font-size: var(--font-sm);
+  line-height: 1.6;
+}
+.learned-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 8px;
+  padding: 4px;
+  font-size: var(--font-sm);
+}
+.learned-time-label { color: var(--text-dim); }
+.learned-btn {
+  background: var(--bg-elevated);
+  border: 1px solid var(--bg-elevated-border);
+  border-radius: 3px;
+  color: var(--text-secondary);
+  font-family: inherit;
+  font-size: var(--font-sm);
+  padding: 2px 6px;
+  cursor: pointer;
+}
+.learned-btn:hover { background: var(--bg-elevated-hover); color: var(--text-bright); }
+
 /* Stream panel */
 .stream-content {
   font-size: var(--font-xs);

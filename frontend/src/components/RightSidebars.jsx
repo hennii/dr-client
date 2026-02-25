@@ -62,7 +62,7 @@ function renderPanelContent(id, props) {
   switch (id) {
     case "room":      return <RoomPanel room={props.room} onInsertText={props.onInsertText} />;
     case "map":       return <MapPanel zone={props.mapZone} currentNode={props.mapCurrentNode} level={props.mapLevel} />;
-    case "exp":       return <ExpTracker exp={props.exp} />;
+    case "exp":       return <ExpTracker exp={props.exp} send={props.send} />;
     case "thoughts":  return <StreamPanel title="Thoughts" lines={props.streams.thoughts || []} colorizeThoughts />;
     case "arrivals":  return <StreamPanel title="Arrivals" lines={props.streams.logons || []} />;
     case "inventory": return <InventoryPanel inventory={props.inventory} roundtime={props.roundtime} send={props.send} />;
