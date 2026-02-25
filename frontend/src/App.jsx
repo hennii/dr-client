@@ -1,4 +1,4 @@
-import React, { useRef, useCallback, useState } from "react";
+import React, { useRef, useCallback, useState, useEffect } from "react";
 import { useGameSocket } from "./hooks/useGameSocket";
 import Toolbar from "./components/Toolbar";
 import MainToolbar from "./components/MainToolbar";
@@ -54,6 +54,25 @@ export default function App() {
 
   const inputRef = useRef(null);
   const insertTextRef = useRef(null);
+
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if (e.ctrlKey || e.metaKey || e.altKey) return;
+      if (e.key.length !== 1) return;
+
+      const active = document.activeElement;
+      if (active === inputRef.current) return;
+      if (active && (active.tagName === 'INPUT' || active.tagName === 'TEXTAREA')) return;
+
+      e.preventDefault();
+      inputRef.current?.focus();
+      insertTextRef.current?.(e.key);
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, []);
+
   const focusInput = useCallback(() => {
     inputRef.current?.focus();
   }, []);
