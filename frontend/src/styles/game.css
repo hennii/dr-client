@@ -846,7 +846,7 @@ html, body, #root {
 .learned-table th:not(:first-child) {
   text-align: right;
 }
-.learned-table tr:nth-of-type(even) { background-color: #3a3a3a; }
+.learned-table tr:nth-of-type(even) { background-color: var(--bg-purple-lighter); }
 .learned-table td { padding: 1px 4px; }
 .learned-skill { color: var(--text-skill); }
 .learned-val {

@@ -139,6 +139,7 @@ function formatFutureTime(minutesToAdd) {
 }
 
 const BASELINE_KEY = 'dr-exp-baseline';
+const LAST_KNOWN_KEY = 'dr-exp-last-known';
 
 function loadBaseline() {
   try { return JSON.parse(localStorage.getItem(BASELINE_KEY)); } catch { return null; }
@@ -146,6 +147,14 @@ function loadBaseline() {
 
 function saveBaseline(b) {
   try { localStorage.setItem(BASELINE_KEY, JSON.stringify(b)); } catch {}
+}
+
+function loadLastKnown() {
+  try { return JSON.parse(localStorage.getItem(LAST_KNOWN_KEY)) || {}; } catch { return {}; }
+}
+
+function saveLastKnown(lk) {
+  try { localStorage.setItem(LAST_KNOWN_KEY, JSON.stringify(lk)); } catch {}
 }
 
 function formatLearningTime(hours) {
@@ -165,7 +174,7 @@ export default function ExpTracker({ exp, send }) {
   const lastLearningHoursUpdate = useRef(0);
   const resetTimerRef = useRef(null);
   const skillsRef = useRef(null);
-  const lastKnownRef = useRef({});
+  const lastKnownRef = useRef(null);
 
   const skills = useMemo(() => {
     return Object.entries(exp)
@@ -173,7 +182,16 @@ export default function ExpTracker({ exp, send }) {
       .sort(([a], [b]) => a.localeCompare(b));
   }, [exp]);
   skillsRef.current = skills;
-  skills.forEach(([name, data]) => { lastKnownRef.current[name] = data; });
+  if (lastKnownRef.current === null) lastKnownRef.current = loadLastKnown();
+  let lkDirty = false;
+  skills.forEach(([name, data]) => {
+    const existing = lastKnownRef.current[name];
+    if (!existing || existing.rank !== data.rank || existing.percent !== data.percent) {
+      lastKnownRef.current[name] = data;
+      lkDirty = true;
+    }
+  });
+  if (lkDirty) saveLastKnown(lastKnownRef.current);
 
   const summaryData = useMemo(() => {
     return exp.rexp ? parseRestedExp(exp.rexp.text) : null;
