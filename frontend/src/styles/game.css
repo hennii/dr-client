@@ -634,6 +634,35 @@ html, body, #root {
 .room-player-name:hover {
   text-decoration-style: solid;
 }
+.player-ctx-menu {
+  position: fixed;
+  z-index: 1000;
+  background: #1e1e1e;
+  border: 1px solid #444;
+  border-radius: 4px;
+  padding: 2px 0;
+  min-width: 140px;
+  box-shadow: 2px 4px 10px rgba(0,0,0,0.5);
+}
+.player-ctx-menu-item {
+  padding: 6px 14px;
+  cursor: pointer;
+  font-size: 0.85rem;
+  color: #ccc;
+}
+.player-ctx-menu-item:hover {
+  background: #2e2e2e;
+  color: #fff;
+}
+.player-ctx-menu-empty {
+  cursor: default;
+  font-style: italic;
+  color: #888;
+}
+.player-ctx-menu-item.player-ctx-menu-empty:hover {
+  background: none;
+  color: #888;
+}
 .room-section-label {
   color: var(--text-faint);
 }
@@ -1336,6 +1365,15 @@ html, body, #root {
   white-space: nowrap;
 }
 
+.player-service-command {
+  flex: 1;
+  color: var(--text-faint);
+  font-size: 0.8rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  padding-left: 8px;
+}
 .highlight-delete {
   background: transparent;
   border: none;

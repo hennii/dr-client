@@ -172,6 +172,27 @@ class GameApp < Sinatra::Base
     { ok: true }.to_json
   end
 
+  PLAYER_SERVICES_FILE = File.join(__dir__, "settings", "player-services.json")
+  DEFAULT_PLAYER_SERVICES = { services: [{ id: "1", title: "Thief mark", command: "mark %p" }] }.freeze
+
+  get "/player-services" do
+    content_type :json
+    if File.exist?(PLAYER_SERVICES_FILE)
+      content = File.read(PLAYER_SERVICES_FILE)
+      content.strip.empty? ? DEFAULT_PLAYER_SERVICES.to_json : content
+    else
+      DEFAULT_PLAYER_SERVICES.to_json
+    end
+  end
+
+  post "/player-services" do
+    content_type :json
+    body = JSON.parse(request.body.read)
+    FileUtils.mkdir_p(File.dirname(PLAYER_SERVICES_FILE))
+    File.write(PLAYER_SERVICES_FILE, body.to_json)
+    { ok: true }.to_json
+  end
+
   def self.boot!
     account  = ENV["DR_USERNAME"]  || abort("Set DR_USERNAME in .env or environment")
     password = ENV["DR_PASSWORD"]  || abort("Set DR_PASSWORD in .env or environment")

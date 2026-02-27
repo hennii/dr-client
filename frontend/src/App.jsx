@@ -8,6 +8,8 @@ import { LeftSidebar } from "./components/Sidebar";
 import RightSidebars from "./components/RightSidebars";
 import { HighlightsProvider } from "./context/HighlightsContext";
 import HighlightsModal from "./components/HighlightsModal";
+import { PlayerServicesProvider } from "./context/PlayerServicesContext";
+import PlayerServicesModal from "./components/PlayerServicesModal";
 
 const LAYOUT_KEY = "dr-client-layout";
 const DEFAULT_SIDEBAR_WIDTH = 280;
@@ -38,6 +40,7 @@ export default function App() {
   } = useGameSocket();
 
   const [highlightsOpen, setHighlightsOpen] = useState(false);
+  const [playerServicesOpen, setPlayerServicesOpen] = useState(false);
 
   const [hiddenPanels, setHiddenPanels] = useState(() => {
     return new Set(loadLayout().hiddenPanels || []);
@@ -54,15 +57,25 @@ export default function App() {
 
   const inputRef = useRef(null);
   const insertTextRef = useRef(null);
+  const addToHistoryRef = useRef(null);
+  const navigateHistoryRef = useRef(null);
 
   useEffect(() => {
     const handleKeyDown = (e) => {
       if (e.ctrlKey || e.metaKey || e.altKey) return;
-      if (e.key.length !== 1) return;
 
       const active = document.activeElement;
       if (active === inputRef.current) return;
       if (active && (active.tagName === 'INPUT' || active.tagName === 'TEXTAREA')) return;
+
+      if (e.key === "ArrowUp" || e.key === "ArrowDown") {
+        e.preventDefault();
+        inputRef.current?.focus();
+        navigateHistoryRef.current?.(e.key === "ArrowUp" ? "up" : "down");
+        return;
+      }
+
+      if (e.key.length !== 1) return;
 
       e.preventDefault();
       inputRef.current?.focus();
@@ -154,6 +167,7 @@ export default function App() {
 
   return (
     <HighlightsProvider>
+    <PlayerServicesProvider>
     <div
       className="app"
       style={{ gridTemplateColumns: `${leftSidebarWidth}px 4px 1fr 4px ${sidebarWidth}px` }}
@@ -167,6 +181,7 @@ export default function App() {
         onTogglePanel={toggleHiddenPanel}
         scriptWindows={scriptWindows}
         onOpenHighlights={() => setHighlightsOpen(true)}
+        onOpenPlayerServices={() => setPlayerServicesOpen(true)}
       />
       <GameText lines={gameLines} onClick={focusInput} />
       <Toolbar
@@ -179,7 +194,7 @@ export default function App() {
         compass={compass}
         onMove={send}
       />
-      <CommandInput onSend={send} inputRef={inputRef} insertTextRef={insertTextRef} />
+      <CommandInput onSend={send} inputRef={inputRef} insertTextRef={insertTextRef} addToHistoryRef={addToHistoryRef} navigateHistoryRef={navigateHistoryRef} />
       <div className="sidebar-divider" onMouseDown={onDividerMouseDown} />
       <RightSidebars
         room={room}
@@ -196,10 +211,13 @@ export default function App() {
         inventory={inventory}
         roundtime={roundtime}
         send={send}
+        addToHistoryRef={addToHistoryRef}
         onInsertText={handleInsertText}
       />
     </div>
     {highlightsOpen && <HighlightsModal onClose={() => setHighlightsOpen(false)} />}
+    {playerServicesOpen && <PlayerServicesModal onClose={() => setPlayerServicesOpen(false)} />}
+    </PlayerServicesProvider>
     </HighlightsProvider>
   );
 }

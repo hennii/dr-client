@@ -1,6 +1,6 @@
 import React, { useState, useRef, useCallback, useEffect } from "react";
 
-export default function CommandInput({ onSend, inputRef: externalRef, insertTextRef }) {
+export default function CommandInput({ onSend, inputRef: externalRef, insertTextRef, addToHistoryRef, navigateHistoryRef }) {
   const [value, setValue] = useState("");
   const [history, setHistory] = useState([]);
   const [historyIndex, setHistoryIndex] = useState(-1);
@@ -19,6 +19,29 @@ export default function CommandInput({ onSend, inputRef: externalRef, insertText
   useEffect(() => {
     if (insertTextRef) insertTextRef.current = insertAtCursor;
   }, [insertTextRef, insertAtCursor]);
+
+  useEffect(() => {
+    if (addToHistoryRef) addToHistoryRef.current = (cmd) => {
+      setHistory((prev) => [cmd, ...prev].slice(0, 100));
+      setHistoryIndex(-1);
+    };
+    if (navigateHistoryRef) navigateHistoryRef.current = (direction) => {
+      if (direction === "up") {
+        setHistoryIndex((prev) => {
+          const next = Math.min(prev + 1, history.length - 1);
+          if (next >= 0 && next < history.length) setValue(history[next]);
+          return next;
+        });
+      } else {
+        setHistoryIndex((prev) => {
+          const next = prev - 1;
+          if (next < 0) { setValue(""); return -1; }
+          setValue(history[next]);
+          return next;
+        });
+      }
+    };
+  });
 
   useEffect(() => {
     if (pendingCursor.current !== null) {

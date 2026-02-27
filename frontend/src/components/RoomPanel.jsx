@@ -1,4 +1,6 @@
-import React from "react";
+import React, { useRef, useState, useEffect } from "react";
+import { createPortal } from "react-dom";
+import { usePlayerServices } from "../context/PlayerServicesContext";
 
 const ALSO_HERE = "Also here: ";
 
@@ -6,7 +8,7 @@ const ALSO_HERE = "Also here: ";
 // runs of consecutive Title-Case words; descriptions ("who is...", "that is...")
 // use lowercase, so they naturally terminate each run. The last word of each
 // capitalized-word run is the character's name.
-function renderPlayers(html, onInsertText) {
+function renderPlayers(html, onInsertText, onContextMenu) {
   if (!onInsertText || !html.startsWith(ALSO_HERE)) {
     return <span dangerouslySetInnerHTML={{ __html: html }} />;
   }
@@ -44,6 +46,7 @@ function renderPlayers(html, onInsertText) {
             <span
               className="room-player-name"
               onClick={() => { onInsertText(part.name); navigator.clipboard.writeText(part.name); }}
+              onContextMenu={(e) => { e.preventDefault(); onContextMenu(part.name, e.clientX, e.clientY); }}
             >{part.name}</span>
           </span>
         )
@@ -52,7 +55,26 @@ function renderPlayers(html, onInsertText) {
   );
 }
 
-export default function RoomPanel({ room, onInsertText }) {
+export default function RoomPanel({ room, onInsertText, send, addToHistoryRef }) {
+  const { services } = usePlayerServices();
+  const [ctxMenu, setCtxMenu] = useState(null);
+  const menuRef = useRef(null);
+
+  useEffect(() => {
+    if (!ctxMenu) return;
+    function handleMouseDown(e) {
+      if (menuRef.current && !menuRef.current.contains(e.target)) {
+        setCtxMenu(null);
+      }
+    }
+    document.addEventListener("mousedown", handleMouseDown);
+    return () => document.removeEventListener("mousedown", handleMouseDown);
+  }, [ctxMenu]);
+
+  function handleContextMenu(name, x, y) {
+    setCtxMenu({ name, x, y });
+  }
+
   return (
     <div className="room-panel">
       {room.title && (
@@ -65,7 +87,7 @@ export default function RoomPanel({ room, onInsertText }) {
       )}
       {room.players && (
         <div className="room-players">
-          {renderPlayers(room.players, onInsertText)}
+          {renderPlayers(room.players, onInsertText, handleContextMenu)}
         </div>
       )}
       {room.exits && (
@@ -73,6 +95,23 @@ export default function RoomPanel({ room, onInsertText }) {
           <span className="room-section-label">Exits: </span>
           <span dangerouslySetInnerHTML={{ __html: room.exits }} />
         </div>
+      )}
+      {ctxMenu && createPortal(
+        <div ref={menuRef} className="player-ctx-menu" style={{ left: ctxMenu.x, top: ctxMenu.y }}>
+          {services.map((s) => (
+            <div
+              key={s.id}
+              className="player-ctx-menu-item"
+              onClick={() => { const cmd = s.command.replace(/%p/g, ctxMenu.name); send(cmd); addToHistoryRef?.current?.(cmd); navigator.clipboard.writeText(ctxMenu.name); setCtxMenu(null); }}
+            >
+              {s.title}
+            </div>
+          ))}
+          {services.length === 0 && (
+            <div className="player-ctx-menu-item player-ctx-menu-empty">No actions configured</div>
+          )}
+        </div>,
+        document.body
       )}
     </div>
   );

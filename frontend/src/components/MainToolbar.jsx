@@ -51,13 +51,16 @@ function PanelToggle({ hiddenPanels, onTogglePanel, scriptWindows }) {
   );
 }
 
-export default function MainToolbar({ logStreams, sendMessage, hiddenPanels, onTogglePanel, scriptWindows, onOpenHighlights }) {
+export default function MainToolbar({ logStreams, sendMessage, hiddenPanels, onTogglePanel, scriptWindows, onOpenHighlights, onOpenPlayerServices }) {
   return (
     <div className="main-toolbar">
       <PanelToggle hiddenPanels={hiddenPanels} onTogglePanel={onTogglePanel} scriptWindows={scriptWindows} />
       <LogToggle logStreams={logStreams} sendMessage={sendMessage} />
       <button className="toolbar-dropdown-btn" onClick={onOpenHighlights} title="Text highlights">
         Highlights
+      </button>
+      <button className="toolbar-dropdown-btn" onClick={onOpenPlayerServices} title="Configure player context menu actions">
+        PC Actions
       </button>
     </div>
   );
