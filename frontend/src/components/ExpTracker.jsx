@@ -385,6 +385,9 @@ export default function ExpTracker({ exp, send }) {
                   <div className="exp-refreshes">Refreshes: {summaryData.refreshes}</div>
                 </div>
               )}
+              {isAsleep && summaryData && (
+                <div className="exp-rexp-stored-asleep">Stored REXP: {summaryData.rexp}</div>
+              )}
               {sleepMsg && <div className="exp-sleep">{sleepMsg}</div>}
             </div>
           </div>

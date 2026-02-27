@@ -38,6 +38,8 @@ class GameApp < Sinatra::Base
   @@event_batch = []
   @@batch_mutex = Mutex.new
   @@flush_scheduled = false
+  @@rexp_last_polled = nil
+  REXP_POLL_INTERVAL = 600  # seconds (10 minutes)
 
   get "/" do
     send_file File.join(settings.public_folder, "index.html")
@@ -137,6 +139,19 @@ class GameApp < Sinatra::Base
     end
   end
 
+  def self.fully_asleep?
+    sleep_data = @@game_state.snapshot[:exp]["sleep"]
+    sleep_data && sleep_data[:text]&.match?(/You are fully relaxed/)
+  end
+
+  def self.maybe_poll_rexp
+    return unless fully_asleep?
+    return if @@rexp_last_polled && (Time.now - @@rexp_last_polled) < REXP_POLL_INTERVAL
+    @@rexp_last_polled = Time.now
+    puts "[rexp] Polling REXP during roundtime"
+    @@game_connection&.send_command("exp")
+  end
+
   SETTINGS_FILE = File.join(__dir__, "settings", "highlights.json")
 
   get "/settings" do
@@ -209,6 +224,22 @@ class GameApp < Sinatra::Base
       # Detect Lich autostart completion so we don't collide with startup scripts.
       if event[:type] == "text" && event[:text]&.include?("autostart has exited")
         autostart_done = true
+      end
+
+      if event[:type] == "roundtime" && event[:value].to_i > 0
+        GameApp.maybe_poll_rexp
+      end
+
+      if event[:type] == "exp" && event[:skill] == "sleep" && !event[:text]&.match?(/fully relaxed/)
+        @@rexp_last_polled = nil
+      end
+
+      # Lich intercepts `exp` and outputs rexp as plain text instead of a component update.
+      # Detect the pattern and synthesize an exp event so the frontend panel stays current.
+      if event[:type] == "text" && event[:text]&.start_with?("Rested EXP Stored:")
+        rexp_event = { type: "exp", skill: "rexp", text: event[:text].strip }
+        @@game_state.update(rexp_event)
+        broadcast(rexp_event)
       end
 
       if event[:type] == "prompt" && !initial_inv_sent
