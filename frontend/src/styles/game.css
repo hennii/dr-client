@@ -11,6 +11,7 @@
   --bg-elevated-hover: #3b334f;
   --bg-purple: #2a1b3a;
   --bg-purple-lighter: #35224a;
+  --bg-panel-gradient-top: #1c2033;
 
   /* Border / divider / track */
   --border: #333;
@@ -53,12 +54,18 @@
   --font-family-sans: "IBM Plex Sans";
 
   /* Font sizes */
-  --font-base: 16px;
-  --font-lg: 17px;
+  --font-lg: calc(var(--font-base) * 1.0625); /* 17px at monitor */
+  --font-base: 14px; /* 16px at monitor width, see query below  */
   --font-sm: calc(var(--font-base) * 0.86667);
   --font-xs: calc(var(--font-base) * 0.75);
   --font-xxs: calc(var(--font-base) * 0.6875);
   --font-xxxs: calc(var(--font-base) * 0.625);
+}
+
+@media screen and (min-width: 1681px) {
+  :root {
+    --font-base: 16px;
+  }
 }
 
 * {
@@ -111,6 +118,7 @@ html, body, #root {
 /* ===== Toolbar ===== */
 .toolbar {
   grid-area: toolbar;
+  container: toolbar / inline-size;
   display: flex;
   flex-direction: column;
   gap: 2px;
@@ -127,7 +135,7 @@ html, body, #root {
 
 /* Mini compass (toolbar) */
 .mini-compass {
-  display: flex;
+  display: none;
   align-items: center;
   gap: 3px;
   flex-shrink: 0;
@@ -189,7 +197,7 @@ html, body, #root {
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  width: 150px;
+  width: 100px;
   flex-shrink: 0;
 }
 .hand-label {
@@ -198,6 +206,7 @@ html, body, #root {
 
 /* Spell display */
 .spell-display {
+  display: none;
   white-space: nowrap;
 }
 .spell-label {
@@ -281,6 +290,20 @@ html, body, #root {
   width: 28px;
   text-align: right;
   flex-shrink: 0;
+}
+
+/* Toolbar container query */
+
+@container toolbar (width > 800px) {
+  .mini-compass {
+    display: flex;
+  }
+  .spell-display {
+    display: block;
+  }
+  .hand {
+    width: 140px;
+  }
 }
 
 /* ===== Game Text Area ===== */
@@ -492,9 +515,15 @@ html, body, #root {
 .right-sidebars {
   grid-area: sidebar;
   display: flex;
-  flex-direction: row;
+  flex-direction: column;
   overflow: hidden;
   min-width: 0;
+}
+
+@media screen and (min-width: 1681px) {
+  .right-sidebars {
+    flex-direction: row;
+  }
 }
 
 .sidebar-column {
@@ -516,14 +545,21 @@ html, body, #root {
 }
 
 .inner-sidebar-divider {
-  width: 4px;
-  flex-shrink: 0;
-  /* background: var(--border); */
-  cursor: col-resize;
-  transition: background 0.15s;
+  display: none;
 }
-.inner-sidebar-divider:hover {
-  background: var(--border-hover);
+
+@media screen and (min-width: 1681px) {
+  .inner-sidebar-divider {
+    display: block;
+    width: 4px;
+    flex-shrink: 0;
+    /* background: var(--border); */
+    cursor: col-resize;
+    transition: background 0.15s;
+  }
+  .inner-sidebar-divider:hover {
+    background: var(--border-hover);
+  }
 }
 
 .drag-overlay-panel {
@@ -732,7 +768,6 @@ html, body, #root {
 
 /* Exp tracker */
 .exp-tracker {
-  overflow-y: auto;
   font-size: var(--font-sm);
 
   &.asleep {
@@ -753,7 +788,6 @@ html, body, #root {
   color: var(--text-faint);
   padding: 2px 4px;
   border-bottom: 1px solid var(--border);
-  position: sticky;
   top: 0;
   background: var(--bg-surface);
 }
@@ -840,6 +874,11 @@ html, body, #root {
   display: flex;
   border-bottom: 1px solid var(--border);
   margin-bottom: 4px;
+  position: sticky;
+  margin-top: -6px;
+  padding-top: 6px;
+  top: -6px;
+  background-color: var(--bg-panel-gradient-top);
 }
 .exp-tab-btn {
   flex: 1;
@@ -881,7 +920,6 @@ html, body, #root {
   color: var(--text-faint);
   padding: 2px 4px;
   border-bottom: 1px solid var(--border);
-  position: sticky;
   top: 0;
   background: var(--bg-surface);
 }
@@ -1478,7 +1516,7 @@ html, body, #root {
   background: 
     linear-gradient(
       180deg,
-      #1c2033 0%,
+      var(--bg-panel-gradient-top) 0%,
       #141826 40%,
       #0f1220 100%
     );

@@ -139,6 +139,10 @@ Raw logs are in `logs/raw-<character>-<date>.log`. Example:
 grep -i "room players\|pushbold" logs/raw-Kesmgurr-2026-02-23.log | head -20
 ```
 
+### CSS Conventions
+
+- **Mobile-first:** Default rules target the smallest viewport. Use `min-width` media queries to layer in styles for larger screens. Never use `max-width` queries to override defaults.
+
 ### Notes
 
 - See `PLAN.md` for the full project plan and phased build order
