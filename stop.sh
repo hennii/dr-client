@@ -7,7 +7,11 @@ cd "$SCRIPT_DIR"
 if [[ -n "${1:-}" ]]; then
   chars=("$1")
 else
-  chars=(kesmgurr syen usidore)
+  chars=()
+  for env_file in .env.*; do
+    [[ "$env_file" == *.example ]] && continue
+    chars+=("${env_file##.env.}")
+  done
 fi
 
 echo "=== Stopping DR client servers ==="

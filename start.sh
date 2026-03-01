@@ -44,15 +44,34 @@ echo "=== Starting DR client servers ==="
 if [[ -n "${1:-}" ]]; then
   start_character "$1"
 else
-  start_character kesmgurr
-  start_character syen
-  start_character usidore
+  for env_file in .env.*; do
+    [[ "$env_file" == *.example ]] && continue
+    start_character "${env_file##.env.}"
+  done
+fi
+
+# Show tabs for running servers only
+running=()
+for env_file in .env.*; do
+  [[ "$env_file" == *.example ]] && continue
+  [[ -f "$env_file" ]] || continue
+  char="${env_file##.env.}"
+  char_name=$(grep '^DR_CHARACTER=' "$env_file" | cut -d= -f2 | tr '[:upper:]' '[:lower:]')
+  port=$(grep '^DR_PORT=' "$env_file" | cut -d= -f2)
+  api_port=$(grep '^SCRIPT_API_PORT=' "$env_file" | cut -d= -f2)
+  pid_file="logs/server/${char_name}.pid"
+  if [[ -f "$pid_file" ]] && kill -0 "$(cat "$pid_file")" 2>/dev/null; then
+    running+=("  $char_name  http://localhost:$port  (ScriptAPI $api_port)")
+  fi
+done
+
+if [[ ${#running[@]} -gt 0 ]]; then
+  echo ""
+  echo "Running:"
+  for line in "${running[@]}"; do
+    echo "$line"
+  done
 fi
 echo ""
-echo "Tabs:"
-echo "  Kesmgurr  http://localhost:4567  (ScriptAPI 49166)"
-echo "  Syen      http://localhost:4568  (ScriptAPI 49167)"
-echo "  Usidore   http://localhost:4569  (ScriptAPI 49168)"
-echo ""
-echo "Logs: logs/server/<character>.log"
-echo "Stop: ./stop.sh"
+echo "Stop single server: dr stop [character]"
+echo "Stop all servers:   dr stop"

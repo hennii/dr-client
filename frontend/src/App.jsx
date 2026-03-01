@@ -36,8 +36,12 @@ export default function App() {
   const {
     gameLines, vitals, room, compass, hands, spell, indicators,
     connected, exp, activeSpells, streams, scriptWindows, roundtime, casttime,
-    logStreams, mapZone, mapCurrentNode, mapLevel, inventory, send, sendMessage,
+    logStreams, mapZone, mapCurrentNode, mapLevel, inventory, charName, send, sendMessage,
   } = useGameSocket();
+
+  useEffect(() => {
+    document.title = charName ? `${charName} - DR` : "DragonRealms";
+  }, [charName]);
 
   const [highlightsOpen, setHighlightsOpen] = useState(false);
   const [playerServicesOpen, setPlayerServicesOpen] = useState(false);

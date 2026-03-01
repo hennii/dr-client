@@ -1,0 +1,59 @@
+#!/usr/bin/env bash
+
+DR_DIR="$(cd "$(dirname "$(readlink -f "${BASH_SOURCE[0]}")")" && pwd)"
+
+usage() {
+  echo "Usage: dr <command> [character]"
+  echo ""
+  echo "Commands:"
+  echo "  start [character]   Start all servers, or a single character"
+  echo "  stop [character]    Stop all servers, or a single character"
+  echo "  status              Show running servers"
+  echo "  logs <character>    Tail the log for a character"
+  exit 1
+}
+
+cmd="${1:-}"
+shift || true
+
+case "$cmd" in
+  start)
+    exec "$DR_DIR/start.sh" "$@"
+    ;;
+  stop)
+    exec "$DR_DIR/stop.sh" "$@"
+    ;;
+  status)
+    echo "=== DR client servers ==="
+    for env_file in "$DR_DIR"/.env.*; do
+      [[ "$env_file" == *.example ]] && continue
+      [[ -f "$env_file" ]] || continue
+      char="${env_file##*.env.}"
+      char_name=$(grep '^DR_CHARACTER=' "$env_file" | cut -d= -f2 | tr '[:upper:]' '[:lower:]')
+      port=$(grep '^DR_PORT=' "$env_file" | cut -d= -f2)
+      pid_file="$DR_DIR/logs/server/${char_name}.pid"
+      if [[ -f "$pid_file" ]] && kill -0 "$(cat "$pid_file")" 2>/dev/null; then
+        echo "  $char_name  running  http://localhost:$port  (PID $(cat "$pid_file"))"
+      else
+        echo "  $char_name  stopped"
+      fi
+    done
+    ;;
+  logs)
+    char="${1:-}"
+    [[ -z "$char" ]] && { echo "Usage: dr logs <character>"; exit 1; }
+    # Resolve character name from env file if needed
+    env_file="$DR_DIR/.env.$char"
+    if [[ -f "$env_file" ]]; then
+      char_name=$(grep '^DR_CHARACTER=' "$env_file" | cut -d= -f2 | tr '[:upper:]' '[:lower:]')
+    else
+      char_name="$char"
+    fi
+    log_file="$DR_DIR/logs/server/${char_name}.log"
+    [[ -f "$log_file" ]] || { echo "No log file found: $log_file"; exit 1; }
+    exec tail -f "$log_file"
+    ;;
+  *)
+    usage
+    ;;
+esac

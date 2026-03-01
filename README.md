@@ -35,8 +35,16 @@ cd frontend && npm run build
 
 ## Running
 
-1. Start the backend: `bundle exec ruby server.rb`
-2. Open `http://localhost:4567`
+Multiple characters are supported, each as an independent server process. The `dr` command manages them (symlink it to somewhere on your PATH, e.g. `~/.local/bin/dr`).
+
+```
+dr start [character]   Start all servers, or a single character
+dr stop [character]    Stop all servers, or a single character
+dr status              Show running servers
+dr logs <character>    Tail the log for a character
+```
+
+Each character needs a `.env.<character>` file (see `.env.example`).
 
 The backend serves the built frontend from `frontend/dist/`.
 
