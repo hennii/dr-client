@@ -65,7 +65,7 @@ module LichLauncher
   def self.shutdown
     if @pid
       puts "[lich_launcher] Killing Lich (PID #{@pid})"
-      Process.kill("TERM", @pid) rescue nil
+      Process.kill("KILL", @pid) rescue nil
       Process.wait(@pid) rescue nil
       @pid = nil
     end

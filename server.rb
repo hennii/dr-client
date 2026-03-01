@@ -21,7 +21,7 @@ Faye::WebSocket.load_adapter("thin")
 
 class GameApp < Sinatra::Base
   set :server, :thin
-  set :port, 4567
+  set :port, (ENV["DR_PORT"] || 4567).to_i
   set :bind, "0.0.0.0"
 
   # Serve built frontend
@@ -290,16 +290,21 @@ class GameApp < Sinatra::Base
     # Step 5: Start ScriptApiServer for kor-scripts
     puts "\n=== Starting ScriptApiServer ==="
     @@script_api = ScriptApiServer.new(
-      port: 49166,
+      port: (ENV["SCRIPT_API_PORT"] || 49166).to_i,
       game_state: @@game_state,
       on_window_event: ->(event) { broadcast(event) },
       on_command: ->(cmd) { @@game_connection.send_command(cmd) },
     )
     @@script_api.start
 
-    # Step 6: Cleanup on shutdown
+    # Step 6: Write PID file and clean up on shutdown
+    pid_file = File.join(__dir__, "logs", "server", "#{character.downcase}.pid")
+    FileUtils.mkdir_p(File.dirname(pid_file))
+    File.write(pid_file, Process.pid.to_s)
+
     at_exit do
       puts "\n=== Shutting down ==="
+      File.delete(pid_file) rescue nil
       @@log_service&.close
       @@script_api&.stop
       @@game_connection&.close
@@ -307,7 +312,7 @@ class GameApp < Sinatra::Base
     end
 
     # Step 7: Start web server
-    puts "\n=== Starting web server on http://localhost:4567 ==="
+    puts "\n=== Starting web server on http://localhost:#{settings.port} ==="
     run!
   end
 end
