@@ -10,7 +10,9 @@
       "Bash(host:*)",
       "Bash(curl:*)",
       "Bash(scutil:*)",
-      "Bash(env)"
+      "Bash(env)",
+      "Bash(lsof:*)",
+      "Bash(kill:*)"
     ]
   }
 }
