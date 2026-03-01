@@ -63,6 +63,11 @@ Vite proxies `/ws` to the Sinatra backend automatically. Changes to source files
 ```
 dr-client/
 ├── server.rb              # Sinatra app, WebSocket endpoint
+├── dr                     # CLI entry point (symlink to ~/.local/bin/dr)
+├── start.sh               # Start one or all character servers
+├── stop.sh                # Stop one or all character servers
+├── .env.example           # Template for per-character env files
+├── .env.<character>       # Per-character config (gitignored)
 ├── lib/
 │   ├── eauth.rb           # SSL auth to eaccess.play.net
 │   ├── game_connection.rb # TCP socket to Lich
@@ -76,26 +81,28 @@ dr-client/
 │   ├── src/
 │   │   ├── App.jsx
 │   │   ├── hooks/
-│   │   │   └── useGameSocket.js       # WebSocket + all game state
+│   │   │   └── useGameSocket.js         # WebSocket + all game state
 │   │   ├── context/
-│   │   │   └── HighlightsContext.jsx  # Text highlight rules
+│   │   │   ├── HighlightsContext.jsx    # Text highlight rules
+│   │   │   └── PlayerServicesContext.jsx
 │   │   ├── components/
-│   │   │   ├── CommandInput.jsx       # Text input with history
+│   │   │   ├── CommandInput.jsx         # Text input with history
 │   │   │   ├── Compass.jsx
 │   │   │   ├── ExpTracker.jsx
-│   │   │   ├── GameText.jsx           # Main scrolling game text
+│   │   │   ├── GameText.jsx             # Main scrolling game text
 │   │   │   ├── HandsDisplay.jsx
 │   │   │   ├── HighlightsModal.jsx
 │   │   │   ├── InventoryPanel.jsx
 │   │   │   ├── LogToggle.jsx
 │   │   │   ├── MainToolbar.jsx
 │   │   │   ├── MapPanel.jsx
-│   │   │   ├── RightSidebars.jsx      # Two-column draggable sidebar
-│   │   │   ├── RoomPanel.jsx          # Room info with clickable player names
-│   │   │   ├── Sidebar.jsx            # Left sidebar
+│   │   │   ├── PlayerServicesModal.jsx  # PC right-click actions
+│   │   │   ├── RightSidebars.jsx        # Two-column draggable sidebar
+│   │   │   ├── RoomPanel.jsx            # Room info with clickable player names
+│   │   │   ├── Sidebar.jsx              # Left sidebar
 │   │   │   ├── SpellDisplay.jsx
 │   │   │   ├── StatusIndicators.jsx
-│   │   │   ├── StreamPanel.jsx        # Thoughts, arrivals, etc.
+│   │   │   ├── StreamPanel.jsx          # Thoughts, arrivals, etc.
 │   │   │   ├── Toolbar.jsx
 │   │   │   └── VitalsBar.jsx
 │   │   ├── utils/
@@ -105,6 +112,9 @@ dr-client/
 │   ├── vite.config.js
 │   └── package.json
 ├── settings/
-│   └── highlights.json    # Persisted highlight rules
-└── logs/                  # Per-character dated log files
+│   ├── highlights.json      # Persisted highlight rules
+│   └── player-services.json # PC context menu actions
+├── maps/                    # Zone map XML files
+├── plans/                   # Feature implementation plans
+└── logs/                    # Per-character dated log files + server PIDs
 ```
