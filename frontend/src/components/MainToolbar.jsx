@@ -5,6 +5,7 @@ import { loadPresets, savePreset, applyPreset, deletePreset } from "../utils/lay
 const STATIC_PANELS = [
   { id: "room",    label: "Room" },
   { id: "map",     label: "Map" },
+  { id: "moons",   label: "Moons" },
   { id: "exp",     label: "Experience" },
   { id: "thoughts",label: "Thoughts" },
   { id: "arrivals",label: "Arrivals" },

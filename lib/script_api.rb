@@ -3,18 +3,36 @@ require "uri"
 require "json"
 
 class ScriptApiServer
-  def initialize(port:, game_state:, on_window_event:, on_command:, pulse_tracker: nil)
+  attr_reader :buddy_client
+
+  def initialize(port:, game_state:, on_window_event:, on_command:, pulse_tracker: nil, buddy_client: nil, on_lich_room_change: nil)
     @port = port
     @game_state = game_state
     @pulse_tracker = pulse_tracker
     @on_window_event = on_window_event
     @on_command = on_command
+    @on_lich_room_change = on_lich_room_change
     @windows = {}
     @windows_mutex = Mutex.new
     @clients = []
     @clients_mutex = Mutex.new
     @server = nil
     @accept_thread = nil
+
+    # BUDDY_WAIT support: a single ConditionVariable broadcast on any peer
+    # change so long-polling waiters wake and re-check their target.
+    @buddy_wait_mutex = Mutex.new
+    @buddy_wait_cv = ConditionVariable.new
+
+    self.buddy_client = buddy_client
+  end
+
+  def buddy_client=(client)
+    @buddy_client = client
+    return unless client
+    client.on_change do |_name, _state, _updated_at|
+      @buddy_wait_mutex.synchronize { @buddy_wait_cv.broadcast }
+    end
   end
 
   def start
@@ -281,9 +299,69 @@ class ScriptApiServer
     when "CT"
       (state[:casttime] || 0).to_s
 
+    when "BUDDY_LIST"
+      return "" unless @buddy_client
+      @buddy_client.peer_names.join("\n")
+
+    when "BUDDY_GET"
+      return "" unless @buddy_client
+      name = args[0]
+      return "" unless name
+      buddy_format(@buddy_client.peer_state(name))
+
+    when "BUDDY_WAIT"
+      return "" unless @buddy_client
+      name = args[0]
+      return "" unless name
+      since_ms, timeout_s = parse_buddy_wait_args(args[1..] || [])
+      wait_for_buddy_update(name, since_ms, timeout_s)
+
     else
       ""
     end
+  end
+
+  def parse_buddy_wait_args(args)
+    since = 0
+    timeout = 30.0
+    args.each do |a|
+      key, val = a.split("=", 2)
+      case key&.downcase
+      when "since" then since = val.to_i
+      when "timeout" then timeout = (val.to_f / 1000.0)
+      end
+    end
+    [since, timeout]
+  end
+
+  def wait_for_buddy_update(name, since_ms, timeout_s)
+    deadline = Time.now + timeout_s
+    @buddy_wait_mutex.synchronize do
+      loop do
+        entry = @buddy_client.peer_state(name)
+        if entry && entry[:updated_at].to_i > since_ms
+          return buddy_format(entry)
+        end
+        remaining = deadline - Time.now
+        break if remaining <= 0
+        @buddy_wait_cv.wait(@buddy_wait_mutex, remaining)
+      end
+    end
+    # Timed out — return whatever we have (possibly empty)
+    buddy_format(@buddy_client.peer_state(name))
+  end
+
+  # Format peer entry as a JSON object. Empty string if entry is nil.
+  def buddy_format(entry)
+    return "" unless entry
+    state = entry[:state] || {}
+    {
+      "updated_at" => entry[:updated_at],
+      "room_id"    => state["room_id"],
+      "zone_id"    => state["zone_id"],
+      "title"      => state["title"],
+      "extras"     => state["extras"] || {},
+    }.to_json
   end
 
   def handle_put(command, args)
@@ -297,6 +375,12 @@ class ScriptApiServer
     when "ECHO"
       text = args[0] || ""
       fire_window_event("echo", nil, text: text)
+      "1"
+
+    when "BUDDY_LICH_ROOM"
+      id = args[0]
+      return "0" unless id && !id.empty?
+      @on_lich_room_change&.call(id.to_i)
       "1"
 
     else

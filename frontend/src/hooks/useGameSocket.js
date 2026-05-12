@@ -44,6 +44,7 @@ const initialState = {
   moons: null,
   skyPeriod: localStorage.getItem("dr-sky-period") || "night",
   pulseData: {},
+  buddies: {},
 };
 
 function appendLines(existing, newLine, max) {
@@ -347,6 +348,27 @@ function reducer(state, action) {
       if (action.sky_period) localStorage.setItem("dr-sky-period", skyPeriod);
       return { ...state, moons: action.moons, skyPeriod };
     }
+    case "buddy_snapshot": {
+      const peers = action.peers || {};
+      const buddies = {};
+      for (const [name, entry] of Object.entries(peers)) {
+        buddies[name] = { state: entry.state, updatedAt: entry.updated_at };
+      }
+      return { ...state, buddies };
+    }
+    case "buddy_update":
+      return {
+        ...state,
+        buddies: {
+          ...state.buddies,
+          [action.character]: { state: action.state, updatedAt: action.updated_at },
+        },
+      };
+    case "buddy_leave": {
+      if (!state.buddies[action.character]) return state;
+      const { [action.character]: _gone, ...rest } = state.buddies;
+      return { ...state, buddies: rest };
+    }
     case "inventory_worn": {
       // Rebuild worn list from names, preserving known container contents for matching items.
       const existingMap = new Map(state.inventory.worn.map((i) => [i.name, i]));
@@ -533,6 +555,7 @@ export function useGameSocket() {
     moons: state.moons,
     skyPeriod: state.skyPeriod,
     pulseData: state.pulseData,
+    buddies: state.buddies,
     send,
     sendMessage,
   };

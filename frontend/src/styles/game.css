@@ -292,6 +292,63 @@ html, body, #root {
   flex-shrink: 0;
 }
 
+/* Buddy panel */
+.buddy-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 4px 6px;
+}
+.buddy-row {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.buddy-row + .buddy-row {
+  border-top: 1px solid var(--border);
+  padding-top: 8px;
+}
+.buddy-row-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+}
+.buddy-name {
+  font-weight: 600;
+  color: var(--text-bright, #eee);
+}
+.buddy-age {
+  font-size: var(--font-xxs);
+  color: var(--text-dim);
+}
+.buddy-title {
+  font-size: var(--font-xs);
+  color: var(--text-dim);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.buddy-panel .vitals-bar {
+  flex-direction: column;
+  gap: 3px;
+  min-width: 0;
+  margin-top: 2px;
+}
+.buddy-panel .vital {
+  width: 100%;
+}
+.buddy-panel .vital-label {
+  width: 48px;
+  flex-shrink: 0;
+  margin-right: 4px;
+}
+.buddy-panel .vital-track {
+  flex: 1;
+}
+.buddy-panel .vital-pct {
+  width: 32px;
+}
+
 /* Toolbar container query */
 
 @container toolbar (width > 800px) {

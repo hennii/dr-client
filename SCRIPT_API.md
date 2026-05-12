@@ -137,6 +137,45 @@ More detailed pulse tracking data per skill:
 - `rank_gain_per_pulse` — average rank progress per pulse without REXP active
 - `rank_gain_per_pulse_rexp` — average rank progress per pulse with REXP active
 
+### Buddy (peer character state)
+
+Shared state from other Stiletto instances running on this machine, via `buddy_broker`.
+
+| Command | Args | Response | Description |
+|---|---|---|---|
+| `GET BUDDY_LIST` | — | newline-separated character names | All currently-connected peer characters (excludes self) |
+| `GET BUDDY_GET` | `?name` | JSON object or empty | Latest known state for the named peer |
+| `GET BUDDY_WAIT` | `?name&since=<ms>&timeout=<ms>` | JSON object or empty | Blocks until peer state is newer than `since` (unix ms) or `timeout` elapses (default 30000). Returns the peer's current state regardless on timeout. |
+
+#### BUDDY_GET / BUDDY_WAIT response format
+
+```json
+{
+  "updated_at": 1778619435961,
+  "room_id": 100,
+  "zone_id": 1,
+  "title": "Town Square",
+  "extras": {
+    "vitals": {"health": 90, "concentration": 80, "spirit": 85, "fatigue": 95},
+    "hands": {"left": "a longsword", "right": "Empty"},
+    "indicators": {"IconSTANDING": true, "IconBLEEDING": false}
+  }
+}
+```
+
+Typical long-poll loop:
+
+```ruby
+since = 0
+loop do
+  resp = client.get("BUDDY_WAIT", "Kesmgurr", "since=#{since}", "timeout=30000")
+  next if resp.empty?
+  data = JSON.parse(resp)
+  since = data["updated_at"]
+  # ...react to data["room_id"] etc.
+end
+```
+
 ---
 
 ## PUT — Send commands
@@ -145,6 +184,7 @@ More detailed pulse tracking data per skill:
 |---|---|---|---|
 | `PUT COMMAND` | `?text` | `1` on success | Send a command to the game as if typed |
 | `PUT ECHO` | `?text` | `1` | Echo text into the main game window |
+| `PUT BUDDY_LICH_ROOM` | `?id` | `1` on success, `0` if id missing | Tell Stiletto our current Lich `Map.current_room.id`. Stored as `extras.lich_room_id` on subsequent buddy publishes so peers can feed it straight to `go2`. |
 
 ---
 

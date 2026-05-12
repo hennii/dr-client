@@ -186,7 +186,18 @@ const LEFT_DEFAULT_PANEL_SIZES = {
 export const LeftSidebar = memo(function LeftSidebar({ exp, streams, pulseData, send }) {
   const [panelOrder, setPanelOrder] = useState(() => {
     const layout = loadLayout();
-    return layout.leftPanelOrder || LEFT_DEFAULT_PANEL_ORDER;
+    const raw = layout.leftPanelOrder ? [...layout.leftPanelOrder] : null;
+    if (!raw) return LEFT_DEFAULT_PANEL_ORDER;
+    // Drop stale "buddies" if a previous build placed it on the left.
+    const saved = raw.filter((id) => id !== "buddies");
+    // Ensure new built-in panels are present in saved order
+    for (const id of LEFT_DEFAULT_PANEL_ORDER) {
+      if (!saved.includes(id)) {
+        const idx = LEFT_DEFAULT_PANEL_ORDER.indexOf(id);
+        saved.splice(idx, 0, id);
+      }
+    }
+    return saved;
   });
 
   const [collapsedPanels, setCollapsedPanels] = useState(() => {

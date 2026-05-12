@@ -37,7 +37,7 @@ export default function App() {
     gameLines, vitals, room, compass, hands, spell, indicators,
     connected, exp, activeSpells, streams, scriptWindows, roundtime, casttime,
     logStreams, mapZone, mapCurrentNode, mapLevel, inventory, charName, moons, skyPeriod,
-    pulseData, send, sendMessage,
+    pulseData, buddies, send, sendMessage,
   } = useGameSocket();
 
   useEffect(() => {
@@ -252,6 +252,7 @@ export default function App() {
         onInsertText={handleInsertText}
         moons={moons}
         skyPeriod={skyPeriod}
+        buddies={buddies}
         onEmptyChange={setRightSidebarEmpty}
       />
     </div>

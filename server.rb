@@ -18,6 +18,7 @@ require_relative "lib/log_service"
 require_relative "lib/map_service"
 require_relative "lib/moon_tracker"
 require_relative "lib/pulse_tracker"
+require_relative "lib/buddy_client"
 
 Faye::WebSocket.load_adapter("thin")
 
@@ -43,6 +44,10 @@ class GameApp < Sinatra::Base
   @@map_service = nil
   @@moon_tracker = nil
   @@pulse_tracker = nil
+  @@buddy_client = nil
+  @@lich_room_id = nil
+  BUDDY_BROKER_PORT = (ENV["BUDDY_BROKER_PORT"] || 49600).to_i
+  BUDDY_PUBLISH_EVENTS = %w[vitals hands indicator compass char_name].freeze
   @@event_batch = []
   @@batch_mutex = Mutex.new
   @@flush_scheduled = false
@@ -77,6 +82,13 @@ class GameApp < Sinatra::Base
       ws.send(map_state.to_json) if map_state
       # Send current moon state
       ws.send(@@moon_tracker.ws_event.to_json) if @@moon_tracker
+      # Send current buddy mirror so the panel paints immediately on reload
+      if @@buddy_client
+        peers = @@buddy_client.peer_state_all.transform_values do |entry|
+          { "state" => entry[:state], "updated_at" => entry[:updated_at] }
+        end
+        ws.send({ type: "buddy_snapshot", peers: peers }.to_json)
+      end
     end
 
     ws.on :message do |event|
@@ -149,6 +161,44 @@ class GameApp < Sinatra::Base
         end
       end
     end
+  end
+
+  def self.ensure_buddy_broker
+    probe = TCPServer.new("127.0.0.1", BUDDY_BROKER_PORT)
+    probe.close
+    log_path = File.join(__dir__, "logs", "buddy_broker.log")
+    FileUtils.mkdir_p(File.dirname(log_path))
+    pid = Process.spawn(
+      { "BUDDY_BROKER_PORT" => BUDDY_BROKER_PORT.to_s },
+      "ruby", File.join(__dir__, "buddy_broker.rb"),
+      [:out, :err] => [log_path, "a"],
+      pgroup: true,
+    )
+    Process.detach(pid)
+    log "[buddy] Spawned broker (pid #{pid}) on port #{BUDDY_BROKER_PORT}"
+  rescue Errno::EADDRINUSE
+    log "[buddy] Broker already running on port #{BUDDY_BROKER_PORT}"
+  end
+
+  def self.build_buddy_state
+    snap = @@game_state.snapshot
+    {
+      "room_id"  => @@map_service&.current_node_id,
+      "zone_id"  => @@map_service&.current_zone_id,
+      "title"    => snap[:room]["title"],
+      "extras"   => {
+        "vitals"        => snap[:vitals],
+        "hands"         => { "left" => snap[:hands][:left], "right" => snap[:hands][:right] },
+        "indicators"    => snap[:indicators],
+        "lich_room_id"  => @@lich_room_id,
+      },
+    }
+  end
+
+  def self.maybe_publish_buddy_state(event_type)
+    return unless @@buddy_client
+    return unless BUDDY_PUBLISH_EVENTS.include?(event_type.to_s)
+    @@buddy_client.publish(build_buddy_state)
   end
 
   def self.fully_asleep?
@@ -263,6 +313,8 @@ class GameApp < Sinatra::Base
         broadcast(map_event) if map_event
       end
 
+      GameApp.maybe_publish_buddy_state(event[:type])
+
       # Detect Lich autostart completion so we don't collide with startup scripts.
       if event[:type] == "text" && event[:text]&.include?("autostart has exited")
         autostart_done = true
@@ -363,10 +415,29 @@ class GameApp < Sinatra::Base
       port: (ENV["SCRIPT_API_PORT"] || 49166).to_i,
       game_state: @@game_state,
       pulse_tracker: @@pulse_tracker,
+      buddy_client: nil,  # set after buddy_client below
       on_window_event: ->(event) { broadcast(event) },
       on_command: ->(cmd) { @@game_connection.send_command(cmd) },
+      on_lich_room_change: ->(id) do
+        @@lich_room_id = id
+        @@buddy_client&.publish(GameApp.build_buddy_state)
+      end,
     )
     @@script_api.start
+
+    # Step 5b: Buddy broker + client (peer-state sharing with other Stilettos)
+    log "=== Starting buddy broker / client ==="
+    ensure_buddy_broker
+    @@buddy_client = BuddyClient.new(character: character, port: BUDDY_BROKER_PORT)
+    @@buddy_client.on_change do |peer_name, state, updated_at|
+      if state.nil?
+        GameApp.broadcast(type: "buddy_leave", character: peer_name)
+      else
+        GameApp.broadcast(type: "buddy_update", character: peer_name, state: state, updated_at: updated_at)
+      end
+    end
+    @@buddy_client.start
+    @@script_api.buddy_client = @@buddy_client
 
     # Step 6: Write PID file and clean up on shutdown
     pid_file = File.join(__dir__, "logs", "server", "#{character.downcase}.pid")
@@ -379,6 +450,7 @@ class GameApp < Sinatra::Base
       @@pulse_tracker&.persist
       @@log_service&.close
       @@script_api&.stop
+      @@buddy_client&.stop
       @@game_connection&.close
       LichLauncher.shutdown
     end
