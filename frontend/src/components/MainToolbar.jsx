@@ -6,9 +6,11 @@ const STATIC_PANELS = [
   { id: "room",    label: "Room" },
   { id: "map",     label: "Map" },
   { id: "moons",   label: "Moons" },
+  { id: "buddies", label: "Buddies" },
   { id: "exp",     label: "Experience" },
   { id: "thoughts",label: "Thoughts" },
   { id: "arrivals",label: "Arrivals" },
+  { id: "familiar",label: "Familiar" },
   { id: "spells",  label: "Active Spells" },
 ];
 

@@ -19,6 +19,7 @@ require_relative "lib/map_service"
 require_relative "lib/moon_tracker"
 require_relative "lib/pulse_tracker"
 require_relative "lib/buddy_client"
+require_relative "lib/lich_map"
 
 Faye::WebSocket.load_adapter("thin")
 
@@ -45,7 +46,7 @@ class GameApp < Sinatra::Base
   @@moon_tracker = nil
   @@pulse_tracker = nil
   @@buddy_client = nil
-  @@lich_room_id = nil
+  @@lich_map = nil
   BUDDY_BROKER_PORT = (ENV["BUDDY_BROKER_PORT"] || 49600).to_i
   BUDDY_PUBLISH_EVENTS = %w[vitals hands indicator compass char_name].freeze
   @@event_batch = []
@@ -190,7 +191,7 @@ class GameApp < Sinatra::Base
         "vitals"        => snap[:vitals],
         "hands"         => { "left" => snap[:hands][:left], "right" => snap[:hands][:right] },
         "indicators"    => snap[:indicators],
-        "lich_room_id"  => @@lich_room_id,
+        "lich_room_id"  => @@lich_map&.current_room_id,
       },
     }
   end
@@ -289,6 +290,17 @@ class GameApp < Sinatra::Base
     maps_dir = File.join(__dir__, "maps")
     @@map_service = MapService.new(maps_dir)
 
+    # Lich's authoritative DR map — used to compute the Lich room id we publish
+    # to peers (the same integer go2 uses).
+    lich_map_path = LichMap.latest_map_path
+    if lich_map_path
+      t = Time.now
+      @@lich_map = LichMap.new(lich_map_path).load
+      log "  [lich_map] Loaded #{File.basename(lich_map_path)} in #{((Time.now - t)*1000).round}ms"
+    else
+      log "  [lich_map] No Lich DR map file found; lich_room_id will not be published"
+    end
+
     pulse_data_path = File.join(__dir__, "settings", "pulse_data_#{character.downcase}.json")
     @@pulse_tracker = PulseTracker.new(pulse_data_path)
 
@@ -309,8 +321,10 @@ class GameApp < Sinatra::Base
       derived.each { |e| broadcast(e) }
 
       if event[:type] == "compass"
-        map_event = @@map_service.update(@@game_state.snapshot)
+        snap = @@game_state.snapshot
+        map_event = @@map_service.update(snap)
         broadcast(map_event) if map_event
+        @@lich_map&.update_from_snapshot(snap)
       end
 
       GameApp.maybe_publish_buddy_state(event[:type])
@@ -418,10 +432,6 @@ class GameApp < Sinatra::Base
       buddy_client: nil,  # set after buddy_client below
       on_window_event: ->(event) { broadcast(event) },
       on_command: ->(cmd) { @@game_connection.send_command(cmd) },
-      on_lich_room_change: ->(id) do
-        @@lich_room_id = id
-        @@buddy_client&.publish(GameApp.build_buddy_state)
-      end,
     )
     @@script_api.start
 

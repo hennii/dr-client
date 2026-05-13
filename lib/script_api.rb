@@ -5,13 +5,12 @@ require "json"
 class ScriptApiServer
   attr_reader :buddy_client
 
-  def initialize(port:, game_state:, on_window_event:, on_command:, pulse_tracker: nil, buddy_client: nil, on_lich_room_change: nil)
+  def initialize(port:, game_state:, on_window_event:, on_command:, pulse_tracker: nil, buddy_client: nil)
     @port = port
     @game_state = game_state
     @pulse_tracker = pulse_tracker
     @on_window_event = on_window_event
     @on_command = on_command
-    @on_lich_room_change = on_lich_room_change
     @windows = {}
     @windows_mutex = Mutex.new
     @clients = []
@@ -375,12 +374,6 @@ class ScriptApiServer
     when "ECHO"
       text = args[0] || ""
       fire_window_event("echo", nil, text: text)
-      "1"
-
-    when "BUDDY_LICH_ROOM"
-      id = args[0]
-      return "0" unless id && !id.empty?
-      @on_lich_room_change&.call(id.to_i)
       "1"
 
     else

@@ -184,7 +184,6 @@ end
 |---|---|---|---|
 | `PUT COMMAND` | `?text` | `1` on success | Send a command to the game as if typed |
 | `PUT ECHO` | `?text` | `1` | Echo text into the main game window |
-| `PUT BUDDY_LICH_ROOM` | `?id` | `1` on success, `0` if id missing | Tell Stiletto our current Lich `Map.current_room.id`. Stored as `extras.lich_room_id` on subsequent buddy publishes so peers can feed it straight to `go2`. |
 
 ---
 

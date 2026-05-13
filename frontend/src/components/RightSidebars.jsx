@@ -24,10 +24,10 @@ import MoonPanel from "./MoonPanel";
 import BuddyPanel from "./BuddyPanel";
 
 const LAYOUT_KEY = "dr-client-layout";
-const DEFAULT_S1_PANELS = ["room", "map", "moons", "buddies", "spells", "arrivals", "inventory"];
+const DEFAULT_S1_PANELS = ["room", "map", "moons", "buddies", "spells", "arrivals", "familiar", "inventory"];
 const DEFAULT_S2_PANELS = [];
-const DEFAULT_COLLAPSED = ["spells", "arrivals"];
-const DEFAULT_PANEL_SIZES = { map: 300, buddies: 200, spells: 200, arrivals: 200, inventory: 300 };
+const DEFAULT_COLLAPSED = ["spells", "arrivals", "familiar"];
+const DEFAULT_PANEL_SIZES = { map: 300, buddies: 200, spells: 200, arrivals: 200, familiar: 200, inventory: 300 };
 const DEFAULT_S2_WIDTH = 220;
 const MIN_COL_WIDTH = 150;
 const MAX_COL_WIDTH = 800;
@@ -69,6 +69,7 @@ function renderPanelContent(id, props) {
     case "exp":       return <ExpTracker exp={props.exp} send={props.send} />;
     case "thoughts":  return <StreamPanel title="Thoughts" lines={props.streams.thoughts || []} colorizeThoughts />;
     case "arrivals":  return <StreamPanel title="Arrivals" lines={props.streams.logons || []} />;
+    case "familiar":  return <StreamPanel title="Familiar" lines={props.streams.familiar || []} />;
     case "inventory": return <InventoryPanel inventory={props.inventory} roundtime={props.roundtime} send={props.send} />;
     case "spells":    return (
       <div className="active-spells-text">
@@ -96,6 +97,7 @@ function getPanelTitle(id, scriptWindows) {
     case "exp":       return "Experience";
     case "thoughts":  return "Thoughts";
     case "arrivals":  return "Arrivals";
+    case "familiar":  return "Familiar";
     case "spells":    return "Active Spells";
     case "inventory": return "Inventory";
     default:
